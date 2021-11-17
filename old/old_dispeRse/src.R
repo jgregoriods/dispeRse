@@ -76,7 +76,7 @@ test_dispersal <- function(spdf, bandwidth, model, nsim=1000) {
 Plot <- function(x) {
     plot(x$timeseries$calBP, x$timeseries[["97.5%"]], type="l")
     lines(x$timeseries$calBP, x$timeseries[["2.5%"]])
-    lines(x$timeseries$calBP, x$timeseries$SPD, col="blue")
+    lines(x$timeseries$calBP, x$timeseries$SPD, col="red")
 }
 
 sample_dates <- function(n, time_range, model='exp') {
