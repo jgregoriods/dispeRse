@@ -82,10 +82,14 @@ test_dispersal <- function(model_raster, spdf) {
     return(spdf)
 }
 
-x <- test_dispersal(r, sites.m)
+#x <- test_dispersal(r, sites.m)
 
 to_grid <- function(coords, r) {
     x <- round((coords[1] - extent(r)[1]) / res(r))
     y <- round((extent(r)[4] - coords[2]) / res(r))
     return(c(x, y))
+}
+
+exp_growth <- function(x, r) {
+    return ((-r * exp(-r * x)) / (exp(-r*max(x)) - exp(-r * min(x))))
 }
