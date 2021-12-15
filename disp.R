@@ -1,4 +1,5 @@
 library(rcarbon)
+library(parallel)
 
 START <- 2500
 END <- 500
@@ -13,29 +14,35 @@ sampleDates <- function(n) {
 }
 
 simSPD <- function(ndates, nsim) {
-    m <- matrix(nrow=START-END+1, ncol=nsim)
-    for (i in 1:nsim) {
+    #m <- matrix(nrow=START-END+1, ncol=nsim)
+    
+    cl <- makeCluster(4)
+    clusterEvalQ(cl, library(rcarbon))
+    clusterExport(cl, c("sampleDates", "START", "END"))
+
+    res <- parLapply(cl, 1:nsim, function(x) {
         s <- sampleDates(ndates)
         cal <- calibrate(s$C14Age, s$C14SD, verbose=FALSE, normalised=F)
         spd <- spd(cal, s$C14SD, timeRange=c(START, END), verbose=FALSE)
-        m[,i] <- spd$grid$PrDens
-    }
-    return(m)
-}
+        
+        gc()
+        
+        return(spd$grid$PrDens)
+    })
 
-compareSPD <- function(real, sim) {
-    sim <- cbind(sim, "PrDens"=real$grid$PrDens)
-    a <- apply(sim, 1, function(x) {
-            if (x["PrDens"] >= x["lo"] && x["PrDens"] <= x["hi"]) {
-                return(x["PrDens"])
-            } else {
-                return(0)
-            }
-         })
-    plot(real$grid$calBP, sim[,"hi"], type="l", col="gray")
-    lines(real$grid$calBP, sim[,"lo"], col="gray")
-    lines(real$grid$calBP, real$grid$PrDens, col="red")
-    return(a)
+    stopCluster(cl)
+
+    m <- matrix(unlist(res), nrow=START-END+1)
+
+    #for (i in 1:nsim) {
+    #    s <- sampleDates(ndates)
+    #    cal <- calibrate(s$C14Age, s$C14SD, verbose=FALSE, normalised=F)
+    #    spd <- spd(cal, s$C14SD, timeRange=c(START, END), verbose=FALSE)
+    #    m[,i] <- spd$grid$PrDens
+    #}
+    
+    f <- foo(m)
+    return(list("sim" = m, "stat" = f))
 }
 
 foo <- function(sim) {
@@ -46,36 +53,75 @@ foo <- function(sim) {
     return(data.frame(mean=mean, sd=sd, hi=hi, lo=lo))
 }
 
-sumZscore <- function(data, stats) {
-    z <- lapply(1:length(data), function(i) {
-            if (data[i] > stats$hi[i] || data[i] < stats$lo[i]) {
-                return(abs((data[i] - stats$mean[i]) / stats$sd[i]))
+sumZscore <- function(sim, stat) {
+    z <- lapply(1:length(sim), function(i) {
+            if (sim[i] > stat$hi[i] || sim[i] < stat$lo[i]) {
+                return(abs((sim[i] - stat$mean[i]) / stat$sd[i]))
             } else {
                 return(0)
             }
          })
-    return(sum(unlist(z)))
+    z <- filterspd(unlist(z))
+    return(sum(z))
+    #return(sum(unlist(z)))
 }
 
 filterspd <- function(z) {
-    res <- sapply(2:2000, function(i) {z[i] && !z[i-1] && !z[i+1]})
+    thr <- round(length(z) * 0.05)
+
+    # single points
+    zpad <- c(0,z,0)
+    s1 <- sapply(3:length(zpad)-1, function(i) {
+        return(zpad[i] && !zpad[i-1] && !zpad[i+1])
+    })
+
+    # double points
+    zpad <- c(0,0,z,0,0)
+    s2 <- sapply(5:length(zpad)-2, function(i) {
+        return(zpad[i] && ((!zpad[i-1] && zpad[i+1] && !zpad[i+2]) || (!zpad[i-2] && zpad[i-1] && !zpad[i+1])))
+    })
+
+    s <- s1 | s2
+
+    if (sum(s) > thr) {
+        s[sample(which(s), sum(s) - thr)] <- FALSE
+    }
+
+    z[s] <- 0
+
+    return(z)
 }
 
 tst <- function(real, sim) {
-    f <- foo(sim)
-    m <- apply(sim, 2, sumZscore, stats=f)
+    m <- apply(sim$sim, 2, sumZscore, stat=sim$stat)
+    #print(m)
     #z <- sumZscore(real$grid$PrDens, f)
-    z <- sumZscore(real, f)
-    t <- (z - mean(m)) / (sd(m) / (length(m) - 1))
-    pval <- pt(t, df=length(m) - 1, lower.tail=F)
-    plot(START:END, f$hi, col="grey", type="l")
-    lines(START:END, f$lo, col="grey")
-    lines(START:END, real, col="red")
-    return(pval)
+    z <- sumZscore(real, sim$stat)
+    #t <- (z - mean(m)) / (sd(m) / (length(m) - 1))
+    #pval <- pt(t, df=length(m) - 1, lower.tail=F)
+    p.value <- mean(m >= z)
+    return(p.value)
 }
 
-cal <- calibrate(c(1000, 1100, 1400, 1000, 1050), rep(30, 5), normalised=F)
-real <- spd(cal, rep(30, 5), timeRange=c(START, END))
-sim <- simSPD(5, 100)
+Plot <- function(real, sim) {
+    plot(START:END, sim$stat$hi, col="grey", type="l")
+    lines(START:END, sim$stat$lo, col="grey")
+    lines(START:END, real, col="red")
+}
 
-tst(real$grid$PrDens, sim)
+
+
+t0 <- Sys.time()
+
+cal <- calibrate(round(runif(10, 500, 1100)), rep(30, 10), normalised=F)
+real <- spd(cal, rep(30, 10), timeRange=c(START, END))
+sim <- simSPD(10, 1000)
+
+p <- tst(real$grid$PrDens, sim)
+
+print(Sys.time() - t0)
+
+print(p)
+
+Plot(real$grid$PrDens, sim)
+
