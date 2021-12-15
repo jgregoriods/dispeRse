@@ -4,8 +4,8 @@ library(fpc)
 library(rcarbon)
 library(parallel)
 
-NSIM <- 100
-
+NSIM <- 10
+NCORES <- 3
 
 
 
@@ -73,6 +73,13 @@ Plot <- function(real, sim, start, end) {
     lines(start:end, real, col="red")
 }
 
+plot.SimResult <- function(s) {
+    start <- s$timeRange[1]
+    end <- s$timeRange[2]
+    plot(start:end, s$sim_spd$stat$hi, col="grey", type="l")
+    lines(start:end, s$sim_spd$stat$lo, col="grey")
+    lines(start:end, s$real_spd, col="red")
+}
 
 
 
@@ -102,7 +109,6 @@ data$sim_end <- 500
 
 d <- fpc::dbscan(coordinates(data), eps=1, MinPts=1)
 data$cluster <- d$cluster
-clusters <- unique(d$cluster)
 
 sampleDates <- function(nsim, start, end) {
     dates <- end:start
@@ -112,48 +118,63 @@ sampleDates <- function(nsim, start, end) {
     return(uncal$rCRA)
 }
 
-m <- t(mapply(sampleDates, nsim=NSIM, data$sim_start, data$sim_end))
 
 gc()
 
-data$pval <- NA
 
-t0 <- Sys.time()
 
-for (i in clusters) {
-    sdata <- data[data$cluster == i,]
-    sm <- m[data$cluster == i, , drop=FALSE]
+spatial_test <- function(spdf) {
+    t0 <- Sys.time()
 
-    START <- max(max(sdata$age), max(sdata$sim_start))
-    END <- min(min(sdata$age), min(sdata$sim_end))
-    
-    cal <- calibrate(sdata$age, sdata$sd, normalised=F, verbose=F)
-    real_spd <- spd(cal, sdata$sd, timeRange=c(START, END), verbose=F)
+    m <- t(mapply(sampleDates, nsim=NSIM, spdf$sim_start, spdf$sim_end))
+    spdf$pval <- NA
 
-    cl <- makeCluster(4)
-    clusterEvalQ(cl, library(rcarbon))
-    clusterExport(cl, c("START", "END", "sm"))
+    clusters <- unique(spdf$cluster)
 
-    res <- parLapply(cl, 1:NSIM, function(x) {
-        sim_cal <- calibrate(sm[,x], rep(30, nrow(sm)), normalised=F, verbose=F)
-        sim_spd <- spd(sim_cal, rep(30, nrow(sm)), timeRange=c(START, END), verbose=FALSE)
 
-        gc()
+    resList <- vector("list", length=length(clusters))
 
-        return(sim_spd$grid$PrDens)
-    })
+    for (i in clusters) {
+        sdata <- spdf[spdf$cluster == i,]
+        sm <- m[spdf$cluster == i, , drop=FALSE]
 
-    stopCluster(cl)
+        START <- max(max(sdata$age), max(sdata$sim_start))
+        END <- min(min(sdata$age), min(sdata$sim_end))
+        
+        cal <- calibrate(sdata$age, sdata$sd, normalised=F, verbose=F)
+        real_spd <- spd(cal, sdata$sd, timeRange=c(START, END), verbose=F)
 
-    mat <- matrix(unlist(res), nrow=START-END+1)
-    f <- foo(mat)
+        cl <- makeCluster(NCORES)
+        clusterEvalQ(cl, library(rcarbon))
+        clusterExport(cl, c("START", "END", "sm"), envir=environment())
 
-    sim_data <- list("sim"=mat, "stat"=f)
+        res <- parLapply(cl, 1:NSIM, function(x) {
+            sim_cal <- calibrate(sm[,x], rep(30, nrow(sm)), normalised=F, verbose=F)
+            sim_spd <- spd(sim_cal, rep(30, nrow(sm)), timeRange=c(START, END), verbose=FALSE)
 
-    #Plot(real_spd$grid$PrDens, sim_data, START, END)
-    p <- tst(real_spd$grid$PrDens, sim_data)
+            gc()
 
-    data$pval[data$cluster == i] <- p
+            return(sim_spd$grid$PrDens)
+        })
+
+        stopCluster(cl)
+
+        mat <- matrix(unlist(res), nrow=START-END+1)
+        f <- foo(mat)
+
+        sim_data <- list("sim"=mat, "stat"=f)
+
+        #Plot(real_spd$grid$PrDens, sim_data, START, END)
+        p <- tst(real_spd$grid$PrDens, sim_data)
+
+        spdf$pval[spdf$cluster == i] <- p
+
+        final <- list("real_spd"=real_spd$grid$PrDens, "sim_spd"=sim_data, "timeRange"=c(START, END), "p"=p)
+        class(final) <- "SimResult"
+        resList[[i]] <- final
+    }
+
+    print(Sys.time() - t0)
+
+    return(resList)
 }
-
-print(Sys.time() - t0)

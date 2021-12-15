@@ -1,0 +1,279 @@
+y <- c(0,0,0,0,10,30,50,140)
+plot(x,y)
+plot(exp(x),y)
+plot(log(x),y)
+plot(x^2,y)
+plot(sqrt(x),y)
+plot(x^2,y)
+plot(exp(x),y)
+x <- c(-3,-2,-1,1,2,3)
+y <- c(-2,-1,0,0,1,2)
+plot(x,y)
+sign(1)
+sign(2)
+sign(-1)
+plot((x+sign(x)),y)
+plot((x-sign(x)),y)
+plot(c(13,-7),c(-7,13))
+points(c(3,3), col="red")
+plot(c(13,-7),c(-7,13))
+plot(3,3,col="red",add=T)
+plot(c(13,-7),c(-7,13))
+points(3,3, col="red")
+plot(c(3,0),c(0,3))
+points(1,1, col="red")
+plot(c(0.995,-0.762),c(-0.762,0.995))
+points(0.762,0.762, col="red")
+compute.log.lik <- function(L, w) {#
+  L[,1] = L[,1]*w[1]#
+  L[,2] = L[,2]*w[2]#
+  return(sum(log(rowSums(L))))#
+}
+mixture.EM <- function(w.init, L) {#
+  w.curr <- w.init#
+  # store log-likehoods for each iteration#
+  log_liks <- c()#
+  ll       <- compute.log.lik(L, w.curr)#
+  log_liks <- c(log_liks, ll)#
+  delta.ll <- 1#
+  while(delta.ll > 1e-5) {#
+    w.curr   <- EM.iter(w.curr, L)#
+    ll       <- compute.log.lik(L, w.curr)#
+    log_liks <- c(log_liks, ll)#
+    delta.ll <- log_liks[length(log_liks)]  - log_liks[length(log_liks)-1]#
+  }#
+  return(list(w.curr, log_liks))#
+}
+EM.iter <- function(w.curr, L, ...) {#
+  # E-step: compute E_{Z|X,w0}[I(Z_i = k)]#
+  z_ik <- L#
+  for(i in seq_len(ncol(L))) {#
+    z_ik[,i] <- w.curr[i]*z_ik[,i]#
+  }#
+  z_ik     <- z_ik / rowSums(z_ik)
+print(z_ik)
+# M-step#
+  w.next   <- colSums(z_ik)/sum(z_ik)#
+  return(w.next)#
+}
+X <- c(0.2, -0.9, -1, 1.2, 1.8)
+X
+L = matrix(NA, nrow=length(X), ncol= 2)
+mu.true = c(-3, 2)
+sigma.true = c(4, 4)
+L[, 1] = dnorm(X, mean=mu.true[1], sd = sigma.true[1])
+L[, 2] = dnorm(X, mean=mu.true[2], sd = sigma.true[2])
+L
+EM.iter(c(0.5,0.5), L)
+ee <- mixture.EM(w.init=c(0.5,0.5), L)
+print(paste("Estimate = (", round(ee[[1]][1],2), ",", round(ee[[1]][2],2), ")", sep=""))
+mixture.EM(c(0.5,0.5), L)
+plot(ee[[2]], ylab='incomplete log-likelihood', xlab='iteration')
+L[, 1] = dnorm(X, mean=mu.true[1], sd = sigma.true[1])
+L[, 2] = dnorm(X, mean=mu.true[2], sd = sigma.true[2])
+L
+L[, 1] = dnorm(X, mean=mu.true[1], sd = sigma.true[1])
+L[, 2] = dnorm(X, mean=mu.true[2], sd = sigma.true[2])
+L
+EM.iter(c(0.5,0.5), L)
+a <- 1:100
+a
+exp(a)
+exp(0.01*a)
+plot(exp(0.01*a))
+a = 1:1000
+plot(exp(0.01*a))
+plot(exp(-0.01*a))
+b = exp(-0.01*a)
+max(b)
+min(b)
+plot(a,b)
+sum(b)
+a = 500:4500
+b = exp(-0.01*a)
+plot(a,b)
+sum(b)
+plot(a,b)
+a = 5:500
+b = exp(-0.01*a)
+plot(a,b)
+sum8b
+sum(b)
+exp_growth <- function(x):
+exp_growth <- function(x) {}
+exp_growth <- function(x, r) { return(exp(-r*x)) }
+a = 0:1000
+plot(a,exp_growth(a,0.01))
+exp_growth <- function(x, r) { return(exp(-r*x)) / sum(exp(-r*x)) }
+plot(a,exp_growth(a,0.01))
+b = exp_growth(a,0.01)
+b
+max(b)
+min(b)
+exp_growth <- function(x, r) { return(exp(-r*x)) }
+b = exp_growth(a,0.01)
+max(b)
+min(b)
+c = b/sum(b)
+c
+min(c)
+max(c)
+plot(a,b)
+plot(a,c)
+exp_growth <- function(x, r) {#
+    return ((-r * exp(-r * x)) / (exp(-r*max(x)) - exp(-r * min(x))))#
+}
+a
+exp_growth(a)
+exp_growth(a, 0.01)
+b <- exp_growth(a, 0.01)
+plot(a,b)
+sum(b)
+b <- exp_growth(a, 0.1)
+sum(b)
+plot(b)
+plot(a,b)
+b <- exp_growth(a, 0.005)
+plot(a,b)
+sum(b)
+plot(a,b)
+a <- 500:2500
+b <- exp_growth(a)
+b <- exp_growth(a, 0l01)
+b <- exp_growth(a, 0.01)
+plot(a,b)
+b <- exp_growth(a, 0.005)
+plot(a,b)
+sample(a,b)
+sample(a,10,prob=b)
+plot(a,b)
+b <- exp_growth(a, 0.00025)
+plot(a,b)
+b <- exp_growth(a, 0.002)
+plot(a,b)
+b <- exp_growth(a, 0.001)
+plot(a,b)
+sample(a,10,prob=b)
+plot(hist(sample(a,10,prob=b)))
+b <- exp_growth(a, 0.002)
+plot(hist(sample(a,10,prob=b)))
+b <- exp_growth(a, 0.001)
+plot(hist(sample(a,10,prob=b)))
+plot(hist(sample(a,5,prob=b)))
+b <- exp_growth(a, 0.01)
+plot(hist(sample(a,5,prob=b)))
+b <- exp_growth(a, 0.005)
+plot(a,b)
+b <- exp_growth(a, 0.0025)
+plot(a,b)
+b <- exp_growth(a, 0.0012)
+plot(a,b)
+exp_growth(2500,0.0012)
+a
+b[2001]
+b[200]
+b[20]
+b[2]
+b[1]
+plot(a,b)
+plot(hist(sample(a,5,prob=b)))
+plot(hist(sample(a,5,replace=T,prob=b)))
+plot(hist(sample(a,5000,replace=T,prob=b)))
+plot(hist(sample(a,10000,replace=T,prob=b)))
+x <- sample(a,10000,replace=T,prob=b))
+x <- sample(a,10000,replace=T,prob=b)
+x
+x < 1000
+sum(x < 1000)
+4928/10000
+a[100]
+a[1000]
+a[800]
+a[700]
+a[600]
+a[500]
+a[501]
+sum(b[1:501])
+sum(b[1:1001])
+sum(b[1:2001])
+sum(b[1:1500])
+sum(b[1:1600])
+sum(b[1:1700])
+sum(b[1:1650])
+sum(b[1:1660])
+a[1660]
+install.packages("hdrcode")
+install.packages("hdrcde")
+library(hdrcde)
+a
+b
+plot(b)
+hdr.den(b, 95)
+hdr.den(a, 95)
+hdr.den(ab, 95)
+hdr.den(b, 95)
+hdr.den(b, 99)
+hdr.den(b, 95)
+hdr.dcde(b, 95)
+hdr.cde(b, 95)
+hdr.den(a, 95, b)
+hdr.den(a, 95, data.frame(x=a,y=b))
+hdr.den(a, c(95,99), data.frame(x=a,y=b))
+hdr.den(a, 68, data.frame(x=a,y=b))
+b <- exp_growth(a, 0.01)
+plot(a,b)
+hdr.den(a, 68, data.frame(x=a,y=b))
+hdr.den(a, 95, data.frame(x=a,y=b))
+hdr.den(a, c(68,95,99), data.frame(x=a,y=b))
+x = 0:4
+x
+y = c(1,10,100,475,1675,4954,12952)
+x = 0:6
+plot(x,y)
+l <- lm(y~x)
+l
+summary(l)
+plot(x,y)
+plot(x,log(y))
+plot(sqrt(x),log(y))
+x <- 1:6
+y = c(10,100,475,1675,4954,12952)
+plot(sqrt(x),log(y))
+l <- lm(y~x)
+summary(l)
+l <- lm(log(y)~x)
+summary(l)
+l <- lm(log(y)~sqrt(x))
+summary(l)
+plot(sqrt(x), log(y))
+y = c(475,1675,4954,12952)
+x <- 1:4
+plot(x,y)
+plot(x,log(y))
+l <- lm(log(y)~x)
+summary(l)
+y
+x
+x <- 3:6
+l <- lm(log(y)~x)
+summary(l)
+x <- c(1000,10000,100000,1000000)
+x
+l <- lm(log(y)~x)
+summary(l)
+l <- lm(y~x)
+summary(l)
+x = 4:7
+y = c(3,10,22,40)
+plot(x,y)
+l <- lm(y~x)
+summary(l)
+l <- lm(log(y)~x)
+summary(l)
+l <- lm(log(y)~sqrt(x))
+summary(l)
+plot(sqrt(x), log(y))
+install.packages("fpc")
+setwd("dispeRse/")
+source("spatial.R")
+source("spatial.R")
