@@ -3,11 +3,12 @@ library(raster)
 library(fpc)
 library(rcarbon)
 library(parallel)
+library(rworldmap)
 
-NSIM <- 10
-NCORES <- 3
+NSIM <- 1000
+NCORES <- 4
 
-
+BORDERS <- getMap(resolution="low")
 
 foo <- function(sim) {
     mean <- apply(sim, 1, mean)
@@ -102,12 +103,12 @@ simulateDispersal <- function(costRaster, origin, date) {
     return(simDates)
 }
 
-s <- simulateDispersal(r, data[323,], 4000)
+s <- simulateDispersal(r, data[323,], 5000)
 
 data$sim_start <- round(extract(s, data))
 data$sim_end <- 500
 
-d <- fpc::dbscan(coordinates(data), eps=1, MinPts=1)
+d <- fpc::dbscan(coordinates(data), eps=2.5, MinPts=1)
 data$cluster <- d$cluster
 
 sampleDates <- function(nsim, start, end) {
@@ -134,6 +135,7 @@ spatial_test <- function(spdf) {
 
     resList <- vector("list", length=length(clusters))
 
+    pb <- txtProgressBar(0, length(clusters), 0, style=3)
     for (i in clusters) {
         sdata <- spdf[spdf$cluster == i,]
         sm <- m[spdf$cluster == i, , drop=FALSE]
@@ -164,17 +166,45 @@ spatial_test <- function(spdf) {
 
         sim_data <- list("sim"=mat, "stat"=f)
 
-        #Plot(real_spd$grid$PrDens, sim_data, START, END)
         p <- tst(real_spd$grid$PrDens, sim_data)
 
         spdf$pval[spdf$cluster == i] <- p
 
-        final <- list("real_spd"=real_spd$grid$PrDens, "sim_spd"=sim_data, "timeRange"=c(START, END), "p"=p)
-        class(final) <- "SimResult"
-        resList[[i]] <- final
+        df <- data.frame("calBP"=real_spd$grid$calBP, "PrDens"=real_spd$grid$PrDens, "lo"=f$lo, "hi"=f$hi)
+
+        spdmodeltest <- list("result"=df, "pval"=p)
+        class(spdmodeltest) <- c(class(spdmodeltest), "SpdModelTest")
+
+        resList[[i]] <- spdmodeltest
+
+        setTxtProgressBar(pb, i)
     }
+    close(pb)
+
+    new_spdf <- SpatialPointsDataFrame(coordinates(spdf), data.frame("pval"=spdf$pval, "cluster"=spdf$cluster))
+    proj4string(new_spdf) <- proj4string(spdf)
 
     print(Sys.time() - t0)
 
-    return(resList)
+    return(list(new_spdf, resList))
 }
+
+Plot <- function(x) {
+    xlim <- c(extent(x)[1]-1, extent(x)[2]+1)
+    ylim <- c(extent(x)[3]-1, extent(x)[4]+1)
+    plot(BORDERS, col="lightgrey", border="white", xlim=xlim, ylim=ylim)
+    cls <- s[[1]][which(!duplicated(s[[1]]$cluster)),]
+    plot(x, pch=20, add=T)
+    sig <- x[x$pval < 0.05,]
+    plot(sig, pch=20, col="red", add=T)
+    text(coordinates(cls)[,1]+.5, coordinates(cls)[,2]+.5, cls$cluster, cex=.8)
+}
+
+
+Plt <- function(x) {
+    par(mfrow=c(ceiling(length(x) / 2),2), mar=rep(2, 4))
+    for (i in 1:length(x)) {
+        plot(x[[i]], main=i)
+    }
+}
+
