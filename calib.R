@@ -9,3 +9,9 @@ Spd <- function(ages, errors) {
     m <- mapply(Calib, ages, errors, SIMPLIFY=F)
     return(Reduce("+", m))
 }
+
+ASD <- function(ages, errors) {
+    df <- cbind(ages, errors)
+    s <- sapply(1:nrow(df), function(x) Calib(df[x,1], df[x,2]))
+    return(rowSums(s))
+}
