@@ -5,6 +5,10 @@ library(rcarbon)
 library(parallel)
 library(rworldmap)
 
+
+source("calib.R")
+
+
 NSIM <- 1000
 NCORES <- 4
 
@@ -124,69 +128,93 @@ gc()
 
 
 
-spatial_test <- function(spdf) {
+spatial_test <- function(mySpdf) {
     t0 <- Sys.time()
 
-    m <- t(mapply(sampleDates, nsim=NSIM, spdf$sim_start, spdf$sim_end))
-    spdf$pval <- NA
+    myMat <- t(mapply(sampleDates, nsim=NSIM, mySpdf$sim_start, mySpdf$sim_end))
+    mySpdf$pval <- NA
 
-    clusters <- unique(spdf$cluster)
+    clusters <- unique(mySpdf$cluster)
 
 
-    resList <- vector("list", length=length(clusters))
+    #resList <- vector("list", length=length(clusters))
 
-    pb <- txtProgressBar(0, length(clusters), 0, style=3)
-    for (i in clusters) {
-        sdata <- spdf[spdf$cluster == i,]
-        sm <- m[spdf$cluster == i, , drop=FALSE]
+    #pb <- txtProgressBar(0, length(clusters), 0, style=3)
+
+    cl <- makeCluster(NCORES, outfile="")
+    clusterEvalQ(cl, library(sp))
+    clusterExport(cl, c("Spd", "myMat", "mySpdf", "Calib", "CALCURVE", "NSIM", "foo", "tst", "sumZscore", "filterspd"), envir=environment())
+
+
+    res <- parLapply(cl, clusters, function(i) {
+        sdata <- mySpdf[mySpdf$cluster == i,]
+        sm <- myMat[mySpdf$cluster == i, , drop=FALSE]
+
 
         START <- max(max(sdata$age), max(sdata$sim_start))
         END <- min(min(sdata$age), min(sdata$sim_end))
+
+        #cal <- calibrate(sdata$age, sdata$sd, normalised=F, verbose=F)
+        #real_spd <- spd(cal, sdata$sd, timeRange=c(START, END), verbose=F)
+
+        real_spd <- Spd(sdata$age, sdata$sd)
+
         
-        cal <- calibrate(sdata$age, sdata$sd, normalised=F, verbose=F)
-        real_spd <- spd(cal, sdata$sd, timeRange=c(START, END), verbose=F)
+        #clusterEvalQ(cl, library(rcarbon))
+        
 
-        cl <- makeCluster(NCORES)
-        clusterEvalQ(cl, library(rcarbon))
-        clusterExport(cl, c("START", "END", "sm"), envir=environment())
-
-        res <- parLapply(cl, 1:NSIM, function(x) {
-            sim_cal <- calibrate(sm[,x], rep(30, nrow(sm)), normalised=F, verbose=F)
-            sim_spd <- spd(sim_cal, rep(30, nrow(sm)), timeRange=c(START, END), verbose=FALSE)
+        spds <- lapply(1:NSIM, function(x) {
+            #sim_cal <- calibrate(sm[,x], rep(30, nrow(sm)), normalised=F, verbose=F)
+            #sim_spd <- spd(sim_cal, rep(30, nrow(sm)), timeRange=c(START, END), verbose=FALSE)
+            sim_spd <- Spd(sm[,x], rep(30, nrow(sm)))
 
             gc()
 
-            return(sim_spd$grid$PrDens)
+            #return(sim_spd$grid$PrDens)
+            return(sim_spd)
         })
 
-        stopCluster(cl)
+        print(length(spds))
 
-        mat <- matrix(unlist(res), nrow=START-END+1)
+        #mat <- matrix(unlist(res), nrow=START-END+1)
+
+        mat <- matrix(unlist(spds), nrow=length(real_spd))
+        mat <- mat[which(CALCURVE$cal < START & CALCURVE$cal > END),]
+        
         f <- foo(mat)
 
         sim_data <- list("sim"=mat, "stat"=f)
 
-        p <- tst(real_spd$grid$PrDens, sim_data)
+        #p <- tst(real_spd$grid$PrDens, sim_data)
+        real_spd <- real_spd[which(CALCURVE$cal < START & CALCURVE$cal > END)]
+        p <- tst(real_spd, sim_data)
 
-        spdf$pval[spdf$cluster == i] <- p
+        #mySpdf$pval[mySpdf$cluster == i] <- p
 
-        df <- data.frame("calBP"=real_spd$grid$calBP, "PrDens"=real_spd$grid$PrDens, "lo"=f$lo, "hi"=f$hi)
+        #df <- data.frame("calBP"=real_spd$grid$calBP, "PrDens"=real_spd$grid$PrDens, "lo"=f$lo, "hi"=f$hi)
+        df <- data.frame("calBP"=CALCURVE[which(CALCURVE$cal < START & CALCURVE$cal > END),1], "PrDens"=real_spd, "lo"=f$lo, "hi"=f$hi)
 
-        spdmodeltest <- list("result"=df, "pval"=p)
+        spdmodeltest <- list("result"=df, "pval"=p, "siteCluster"=i)
         class(spdmodeltest) <- c(class(spdmodeltest), "SpdModelTest")
 
-        resList[[i]] <- spdmodeltest
+        #resList[[i]] <- spdmodeltest
+        return(spdmodeltest)
+    })
 
-        setTxtProgressBar(pb, i)
+    stopCluster(cl)
+
+    mySpdf$pval <- NA
+    for (i in res) {
+        mySpdf$pval[mySpdf$cluster == i$siteCluster] <- i$pval
     }
-    close(pb)
 
-    new_spdf <- SpatialPointsDataFrame(coordinates(spdf), data.frame("pval"=spdf$pval, "cluster"=spdf$cluster))
-    proj4string(new_spdf) <- proj4string(spdf)
+    #new_spdf <- SpatialPointsDataFrame(coordinates(mySpdf), data.frame("pval"=mySpdf$pval, "cluster"=mySpdf$cluster))
+    #proj4string(new_spdf) <- proj4string(mySpdf)
 
     print(Sys.time() - t0)
 
-    return(list(new_spdf, resList))
+    #return(list(new_spdf, resList))
+    return(list(mySpdf, res))
 }
 
 Plot <- function(x) {
