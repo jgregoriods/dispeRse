@@ -9,8 +9,8 @@ library(rworldmap)
 source("calib.R")
 
 
-NSIM <- 1000
-NCORES <- 4
+NSIM <- 500
+NCORES <- 3
 
 BORDERS <- getMap(resolution="low")
 
@@ -143,7 +143,8 @@ spatial_test <- function(mySpdf) {
 
     cl <- makeCluster(NCORES, outfile="")
     clusterEvalQ(cl, library(sp))
-    clusterExport(cl, c("Spd", "myMat", "mySpdf", "Calib", "CALCURVE", "NSIM", "foo", "tst", "sumZscore", "filterspd"), envir=environment())
+    clusterEvalQ(cl, dyn.load('calibc.so'))
+    clusterExport(cl, c("Spd", "myMat", "mySpdf", "Calib", "CalibC", "CALCURVE", "NSIM", "foo", "tst", "sumZscore", "filterspd"), envir=environment())
 
 
     res <- parLapply(cl, clusters, function(i) {
@@ -173,8 +174,6 @@ spatial_test <- function(mySpdf) {
             #return(sim_spd$grid$PrDens)
             return(sim_spd)
         })
-
-        print(length(spds))
 
         #mat <- matrix(unlist(res), nrow=START-END+1)
 

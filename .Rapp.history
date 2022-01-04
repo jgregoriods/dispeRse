@@ -1,90 +1,3 @@
-y <- c(0,0,0,0,10,30,50,140)
-plot(x,y)
-plot(exp(x),y)
-plot(log(x),y)
-plot(x^2,y)
-plot(sqrt(x),y)
-plot(x^2,y)
-plot(exp(x),y)
-x <- c(-3,-2,-1,1,2,3)
-y <- c(-2,-1,0,0,1,2)
-plot(x,y)
-sign(1)
-sign(2)
-sign(-1)
-plot((x+sign(x)),y)
-plot((x-sign(x)),y)
-plot(c(13,-7),c(-7,13))
-points(c(3,3), col="red")
-plot(c(13,-7),c(-7,13))
-plot(3,3,col="red",add=T)
-plot(c(13,-7),c(-7,13))
-points(3,3, col="red")
-plot(c(3,0),c(0,3))
-points(1,1, col="red")
-plot(c(0.995,-0.762),c(-0.762,0.995))
-points(0.762,0.762, col="red")
-compute.log.lik <- function(L, w) {#
-  L[,1] = L[,1]*w[1]#
-  L[,2] = L[,2]*w[2]#
-  return(sum(log(rowSums(L))))#
-}
-mixture.EM <- function(w.init, L) {#
-  w.curr <- w.init#
-  # store log-likehoods for each iteration#
-  log_liks <- c()#
-  ll       <- compute.log.lik(L, w.curr)#
-  log_liks <- c(log_liks, ll)#
-  delta.ll <- 1#
-  while(delta.ll > 1e-5) {#
-    w.curr   <- EM.iter(w.curr, L)#
-    ll       <- compute.log.lik(L, w.curr)#
-    log_liks <- c(log_liks, ll)#
-    delta.ll <- log_liks[length(log_liks)]  - log_liks[length(log_liks)-1]#
-  }#
-  return(list(w.curr, log_liks))#
-}
-EM.iter <- function(w.curr, L, ...) {#
-  # E-step: compute E_{Z|X,w0}[I(Z_i = k)]#
-  z_ik <- L#
-  for(i in seq_len(ncol(L))) {#
-    z_ik[,i] <- w.curr[i]*z_ik[,i]#
-  }#
-  z_ik     <- z_ik / rowSums(z_ik)
-print(z_ik)
-# M-step#
-  w.next   <- colSums(z_ik)/sum(z_ik)#
-  return(w.next)#
-}
-X <- c(0.2, -0.9, -1, 1.2, 1.8)
-X
-L = matrix(NA, nrow=length(X), ncol= 2)
-mu.true = c(-3, 2)
-sigma.true = c(4, 4)
-L[, 1] = dnorm(X, mean=mu.true[1], sd = sigma.true[1])
-L[, 2] = dnorm(X, mean=mu.true[2], sd = sigma.true[2])
-L
-EM.iter(c(0.5,0.5), L)
-ee <- mixture.EM(w.init=c(0.5,0.5), L)
-print(paste("Estimate = (", round(ee[[1]][1],2), ",", round(ee[[1]][2],2), ")", sep=""))
-mixture.EM(c(0.5,0.5), L)
-plot(ee[[2]], ylab='incomplete log-likelihood', xlab='iteration')
-L[, 1] = dnorm(X, mean=mu.true[1], sd = sigma.true[1])
-L[, 2] = dnorm(X, mean=mu.true[2], sd = sigma.true[2])
-L
-L[, 1] = dnorm(X, mean=mu.true[1], sd = sigma.true[1])
-L[, 2] = dnorm(X, mean=mu.true[2], sd = sigma.true[2])
-L
-EM.iter(c(0.5,0.5), L)
-a <- 1:100
-a
-exp(a)
-exp(0.01*a)
-plot(exp(0.01*a))
-a = 1:1000
-plot(exp(0.01*a))
-plot(exp(-0.01*a))
-b = exp(-0.01*a)
 max(b)
 min(b)
 plot(a,b)
@@ -273,7 +186,71 @@ summary(l)
 l <- lm(log(y)~sqrt(x))
 summary(l)
 plot(sqrt(x), log(y))
-install.packages("fpc")
-setwd("dispeRse/")
-source("spatial.R")
-source("spatial.R")
+install.packages("rworldmap")
+setwd('dispeRse/')
+source('main.R')
+plot(r)
+res(r)
+plot(b)
+res <- run_model(340, 265, base_grid, env_grid, 97, 36, 5000)
+source('main.R')
+b
+c <- projectRaster(b, res=50000, crs=proj4string(b))
+c <- projectRaster(b, res=50000, crs=albers)
+proj4string(b) <- albers
+c <- projectRaster(b, res=50000, crs=albers)
+plot(c)
+c <- projectRaster(b, res=50000, crs=albers, method='ngb')
+plot(c)
+c
+env_grid <- matrix(as.matrix(c), nrow=142, byrow=T)
+env_grid
+ncol(env_grid)
+c
+base_grid <- matrix(-1, nrow=180, ncol=142)
+res <- run_model(180, 142, base_grid, env_grid, 50, 18, 5000)
+b
+c
+matrix(as.matrix(b), nrow=265, byrow=T)
+c
+matrix(as.matrix(c), nrow=142, byrow=T)
+c[is.na(values(c))] <- 0
+c
+env_grid <- matrix(as.matrix(c), nrow=142, byrow=T)
+env_grid
+res <- run_model(180, 142, base_grid, env_grid, 50, 18, 5000)
+r <- raster(matrix(res, nrow=340, ncol=265, byrow=T))#
+r[values(r) < 0] <- NA
+plot(r)
+r <- raster(matrix(res, nrow=180, ncol=142, byrow=T))#
+r[values(r) < 0] <- NA
+plot(r)
+extent(r) <- extent(b)#
+proj4string(r) <- albers#
+r <- 5500 - r
+plot(r)
+spplot(r)
+spplot(r)
+source('main.R')
+source('main.R')
+plot(r)
+source('main.R')
+plot(r)
+spplot(r)
+source('main.R')
+spplot(r)
+source('main.R')
+source('main.R')
+source('main.R')
+source('main.R')
+source('main.R')
+source('main.R')
+plot(r)
+plot(r)
+source('main.R')
+plot(r)
+source('main.R')
+plot(r)
+source('main.R')
+plot(r)
+spplot(r)

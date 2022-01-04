@@ -119,7 +119,7 @@ void run_model(int *height, int *width,
 
     int *agent_grid = (int *)malloc(sizeof(int) * max_agents);
 
-    Model model = {0, 500, 0.025, 0.6, 0};
+    Model model = {0, 500, 0.05, 0.6, 0};
     Grid grid = {*height, *width, base_grid, env_grid, agent_grid};
     Agent *agent_list[max_agents];
 
