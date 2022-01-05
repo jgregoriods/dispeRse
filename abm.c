@@ -12,16 +12,18 @@ typedef struct Coord {
 
 typedef struct Agent {
     Coord coord;
-    int population;
+    double population;
     int active;
 } Agent;
 
 typedef struct Model {
     int agent_count;
-    int K;
+    double K;
     double r;
-    double epsilon;
+    double cta;
     int step;
+    int generation;
+    int dist;
 } Model;
 
 typedef struct Grid {
@@ -32,46 +34,53 @@ typedef struct Grid {
     int *agent;
 } Grid;
 
-const Coord KNIGHT[16] = {
-    {-1, 2}, {1, 2},
-    {-2, 1}, {-1, 1}, {0, 1}, {1, 1}, {2, 1},
-    {-1, 0}, {1, 0},
-    {-2, -1}, {-1, -1}, {0, -1}, {1, -1}, {2, -1},
-    {-1, -2}, {1, -2}
-};
+int NCELLS[20];
+Coord *CELLS[20];
 
-Coord *get_neighborhood(Coord coord) {
-    Coord *neighborhood = malloc(sizeof(Coord) * 16);
+Coord *get_neighborhood(Coord coord, int dist) {
+    Coord *neighborhood = malloc(sizeof(Coord) * NCELLS[dist - 1]);
     int index = 0;
-    //for (int i = -1; i < 2; i++) {
-    //    for (int j = -1; j < 2; j++) {
-    //        if (i || j) {
-    for (int i = 0; i < 16; i++) {
-        Coord neighbor = {coord.x + KNIGHT[i].x, coord.y + KNIGHT[i].y};
+
+    for (int i = 0; i < NCELLS[dist - 1]; i++) {
+        Coord neighbor = {coord.x + CELLS[dist - 1][i].x, coord.y + CELLS[dist - 1][i].y};
         neighborhood[index++] = neighbor;
     }
-    //    }
-    //}
+
     return neighborhood;
 }
 
-// Logistic growth
+
+// **********************************************************
+// Functions for logistic growth
+//
+/*double log_growth_t(double n, double r, double k, int t) {
+    return (k * n) / (n + (k - n) * exp(-r * t));
+}*/
+double log_growth_t(double n, double r, int t) {
+    return n / (n + (1 - n) * exp(-r * t));
+}
+//
+//
+//
 void grow_population(Agent *agent_list[], Model *model) {
     for (int i = 0; i < model->agent_count; i++) {
         if (!agent_list[i]->active) break;
-        int N = agent_list[i]->population;
-        agent_list[i]->population += round(model->r * (double)N * (1 - ((double)N / (double)model->K)));
+        agent_list[i]->population = log_growth_t(agent_list[i]->population, model->r, model->generation);
     }
 }
+//
+// **********************************************************
 
-Coord choose_cell(Coord cells[16], Model *model, Grid *grid) {
-    Coord empty_cells[16];
-    for (int i = 0; i < 16; i++) {
+
+Coord choose_cell(Coord *cells, Model *model, Grid *grid) {
+    int num = NCELLS[model->dist - 1];
+    Coord empty_cells[num];
+    for (int i = 0; i < num; i++) {
         empty_cells[i].x = TURNOFF;
         empty_cells[i].y = TURNOFF;
     }
     int j = 0;
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < num; i++) {
         int index = (grid->width * cells[i].y) + cells[i].x;
         if (cells[i].x >= 0 && cells[i].x < grid->width
             && cells[i].y >= 0 && cells[i].y < grid->height
@@ -84,14 +93,27 @@ Coord choose_cell(Coord cells[16], Model *model, Grid *grid) {
     return empty_cells[r];
 }
 
-// Density-dependent emigration
+
+// **********************************************************
+// Functions for density-dependent dispersal
+//
+/*double ta_dispersal(double n, double cta, double k) {
+    if (n / k > cta) return (1 - (cta / (n / k)));
+    return 0;
+}*/
+double ta_dispersal(double n, double cta) {
+    if (n > cta) return n - cta;
+    return 0;
+}
+//
+//
+//
 void disperse_population(Agent *agent_list[], Model *model, Grid *grid) {
     for (int i = 0; i < model->agent_count; i++) {
         if (!agent_list[i]->active) break;
-        int N = agent_list[i]->population;
-        int migrants = round((double)N * model->epsilon * ((double)N / (double)model->K));
-        if (migrants > 150) {
-            Coord *neighborhood = get_neighborhood(agent_list[i]->coord);
+        double migrants = agent_list[i]->population * ta_dispersal(agent_list[i]->population, model->cta);
+        if (migrants) {
+            Coord *neighborhood = get_neighborhood(agent_list[i]->coord, model->dist);
             Coord cell = choose_cell(neighborhood, model, grid);
             if (cell.x != TURNOFF && cell.y != TURNOFF) {
                 agent_list[i]->population -= migrants;
@@ -107,11 +129,37 @@ void disperse_population(Agent *agent_list[], Model *model, Grid *grid) {
         }
     }
 }
+//
+// **********************************************************
+
+
+Coord* dist_to_cells(int radius, int* len) {
+    Coord* cells = (Coord *)malloc(pow(radius * 2 + 1, 2) * sizeof(Coord));
+    int idx = 0;
+    for (int i = -radius; i <= radius; ++i) {
+        for (int j = -radius; j <= radius; ++j) {
+            double dist = round(hypot(i, j));
+            if (dist <= radius && (i || j)) {
+                cells[idx].x = i;
+                cells[idx].y = j;
+                ++idx;
+            }
+        }
+    }
+    Coord* res = (Coord *)malloc(idx * sizeof(Coord));
+    for (int i = 0; i < idx; ++i) {
+        res[i] = cells[i];
+    }
+    *len = idx;
+    return res;
+}
 
 void run_model(int *height, int *width,
                int *base_grid, double *env_grid,
                int *start_x, int *start_y,
-               int *num_iter) {
+               double *k, double *r, double *cta,
+               int *dist, int *num_iter) {
+
     srand(time(NULL));
 
     int i, j;
@@ -119,7 +167,13 @@ void run_model(int *height, int *width,
 
     int *agent_grid = (int *)malloc(sizeof(int) * max_agents);
 
-    Model model = {0, 500, 0.05, 0.6, 0};
+    for (i = 0; i < 20; ++i) {
+        int len;
+        CELLS[i] = dist_to_cells(i + 1, &len);
+        NCELLS[i] = len;
+    }
+
+    Model model = {0, *k, *r, *cta, 0, 30, *dist};
     Grid grid = {*height, *width, base_grid, env_grid, agent_grid};
     Agent *agent_list[max_agents];
 
@@ -132,7 +186,7 @@ void run_model(int *height, int *width,
 
     agent_list[0]->coord.x = *start_x;
     agent_list[0]->coord.y = *start_y;
-    agent_list[0]->population = 500;
+    agent_list[0]->population = model.cta;
     agent_list[0]->active = 1;
     model.agent_count++;
     int index = (*start_y * (*width)) + *start_x;
