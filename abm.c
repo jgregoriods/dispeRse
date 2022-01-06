@@ -51,7 +51,7 @@ Coord *get_neighborhood(Coord coord, int dist) {
 
 
 // **********************************************************
-// Functions for logistic growth
+// Function for logistic growth
 //
 /*double log_growth_t(double n, double r, double k, int t) {
     return (k * n) / (n + (k - n) * exp(-r * t));
@@ -59,13 +59,19 @@ Coord *get_neighborhood(Coord coord, int dist) {
 double log_growth_t(double n, double r, int t) {
     return n / (n + (1 - n) * exp(-r * t));
 }
-//
-//
-//
+
+// **********************************************************
+// Function for exponential growth
+double exp_growth_t(double n, double r, int t) {
+    return n * exp(r * t);
+}
+
 void grow_population(Agent *agent_list[], Model *model) {
     for (int i = 0; i < model->agent_count; i++) {
         if (!agent_list[i]->active) break;
-        agent_list[i]->population = log_growth_t(agent_list[i]->population, model->r, model->generation);
+        //agent_list[i]->population = log_growth_t(agent_list[i]->population, model->r, model->generation);
+        agent_list[i]->population = exp_growth_t(agent_list[i]->population, model->r, model->generation);
+        if (agent_list[i]->population >= 1) agent_list[i]->population = 1;
     }
 }
 //
@@ -89,7 +95,18 @@ Coord choose_cell(Coord *cells, Model *model, Grid *grid) {
         }
     }
     if (!j) return empty_cells[0];
-    int r = rand() % j;
+
+    double best = 0;
+    int r = 0;
+    for (int i = 0; i < j; i++) {
+        int index = (grid->width * empty_cells[i].y) + empty_cells[i].x;
+        if (*(grid->env + index) > best) {
+            best = *(grid->env + index);
+            r = i;
+        }
+    }
+
+    //int r = rand() % j;
     return empty_cells[r];
 }
 
@@ -146,6 +163,7 @@ Coord* dist_to_cells(int radius, int* len) {
             }
         }
     }
+    free(cells);
     Coord* res = (Coord *)malloc(idx * sizeof(Coord));
     for (int i = 0; i < idx; ++i) {
         res[i] = cells[i];
@@ -206,7 +224,6 @@ void run_model(int *height, int *width,
     }
 }
 
-/*
 int main() {
     int height = 500;
     int width = 500;
@@ -218,10 +235,13 @@ int main() {
     }
     int start_x = 250;
     int start_y = 250;
-    int num_iter = 6000;
-    run_model(&height, &width, grid, env_grid, &start_x, &start_y, &num_iter);
+    int num_iter = 200;
+    double k = 1;
+    double r = 0.025;
+    double cta = 0.5;
+    int dist = 3;
+    run_model(&height, &width, grid, env_grid, &start_x, &start_y, &k, &r, &cta, &dist, &num_iter);
     free(grid);
     free(env_grid);
     return 0;
 }
-*/
