@@ -7,7 +7,9 @@ wgs <- CRS("+init=epsg:4326")
 albers <- CRS("+proj=aea +lat_0=-32 +lon_0=-60 +lat_1=-5 +lat_2=-42 +x_0=0 +y_0=0 +ellps=aust_SA +units=m +no_defs")
 
 #b <- raster("b.asc")
-b <- raster("ele.asc")
+#b <- raster("ele.asc")
+b <- raster("drivs.asc")
+b[is.na(values(b))] <- 0
 env_grid <- matrix(as.matrix(b), nrow=265, byrow=T)
 base_grid <- matrix(-1, nrow=340, ncol=265)
 
@@ -19,7 +21,7 @@ k <- 1
 r <- 0.025
 cta <- 0.25
 dist <- 2
-num_iter <- round(5000 / 30)
+num_iter <- round(4000 / 30)
 
 res <- run_model(height, width, base_grid, env_grid, start_x, start_y, k, r, cta, dist, num_iter)
 res.r <- raster(matrix(res, nrow=height, ncol=width, byrow=T))
