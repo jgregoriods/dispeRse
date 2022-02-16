@@ -14,7 +14,6 @@ typedef struct Agent {
     Coord coord;
     double population;
     int active;
-    double env; ////////////////////////////////////////
 } Agent;
 
 typedef struct Model {
@@ -71,7 +70,7 @@ void grow_population(Agent *agent_list[], Model *model) {
     for (int i = 0; i < model->agent_count; i++) {
         if (!agent_list[i]->active) break;
         //agent_list[i]->population = log_growth_t(agent_list[i]->population, model->r, model->generation);
-        agent_list[i]->population = exp_growth_t(agent_list[i]->population, model->r * agent_list[i]->env, model->generation);
+        agent_list[i]->population = exp_growth_t(agent_list[i]->population, model->r, model->generation);
         if (agent_list[i]->population >= 1) agent_list[i]->population = 1;
     }
 }
@@ -136,11 +135,10 @@ void disperse_population(Agent *agent_list[], Model *model, Grid *grid) {
             if (cell.x != TURNOFF && cell.y != TURNOFF) {
                 agent_list[i]->population -= migrants;
                 
-                int index = (grid->width * cell.y) + cell.x;
                 agent_list[model->agent_count]->coord = cell;
                 agent_list[model->agent_count]->population = migrants;
-                agent_list[model->agent_count]->env = *(grid->env + index); //////////////
                 agent_list[(model->agent_count)++]->active = 1;
+                int index = (grid->width * cell.y) + cell.x;
                 *(grid->agent + index) = 1;
                 *(grid->base + index) = model->step;
             }
@@ -208,11 +206,6 @@ void run_model(int *height, int *width,
     agent_list[0]->coord.y = *start_y;
     agent_list[0]->population = model.cta;
     agent_list[0]->active = 1;
-
-    /////////////////////////////////////////////////////////////////////////////////
-    agent_list[0]->env = 1;
-    /////////////////////////////////////////////////////////////////////////////////
-
     model.agent_count++;
     int index = (*start_y * (*width)) + *start_x;
     *(agent_grid + index) = 1;

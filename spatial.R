@@ -8,10 +8,6 @@ library(rworldmap)
 
 source("calib.R")
 
-
-NSIM <- 500
-NCORES <- 3
-
 BORDERS <- getMap(resolution="low")
 
 foo <- function(sim) {
@@ -69,82 +65,36 @@ tst <- function(real, sim) {
     #t <- (z - mean(m)) / (sd(m) / (length(m) - 1))
     #pval <- pt(t, df=length(m) - 1, lower.tail=F)
     p.value <- mean(m >= z)
-    return(p.value)
+    return(list(p=p.value, z=z))
 }
 
-Plot <- function(real, sim, start, end) {
-    plot(start:end, sim$stat$hi, col="grey", type="l")
-    lines(start:end, sim$stat$lo, col="grey")
-    lines(start:end, real, col="red")
-}
-
-plot.SimResult <- function(s) {
-    start <- s$timeRange[1]
-    end <- s$timeRange[2]
-    plot(start:end, s$sim_spd$stat$hi, col="grey", type="l")
-    lines(start:end, s$sim_spd$stat$lo, col="grey")
-    lines(start:end, s$real_spd, col="red")
-}
-
-
-
-
-data <- read.csv("old/old_dispeRse/data/data.csv")
-coordinates(data) <- ~Longitude+Latitude
-proj4string(data) <- CRS("+init=epsg:4326")
-
-r <- raster(extent(data))
-proj4string(r) <- proj4string(data)
-res(r) <- 0.25
-values(r) <- 1
-
-simulateDispersal <- function(costRaster, origin, date) {
-    tr <- transition(costRaster, function(x) 1 / mean(x), 16)
-    tr <- geoCorrection(tr)
-    ac <- accCost(tr, origin) / 1000
-    ac[values(ac) == Inf] <- NA
-    simDates <- date - ac
-    return(simDates)
-}
-
-s <- simulateDispersal(r, data[323,], 5000)
-
-data$sim_start <- round(extract(s, data))
-data$sim_end <- 500
-
-d <- fpc::dbscan(coordinates(data), eps=2.5, MinPts=1)
-data$cluster <- d$cluster
-
-sampleDates <- function(nsim, start, end) {
+sampleDates <- function(nsim, start, end, model='exp', a=-0.001) {
     dates <- end:start
-    probs <- exp(-0.001 * dates)
-    sampled <- sample(dates, nsim, prob=probs, replace=TRUE)
+    if (model == 'exp') {
+        probs <- exp(a * dates)
+        sampled <- sample(dates, nsim, prob=probs, replace=TRUE)
+    } else if (model == 'uniform') {
+        sampled <- sample(dates, nsim, replace=TRUE)
+    } else if (model == 'log') {
+        probs <- 1 / (1 + exp(a * (mean(dates) - dates)))
+        sampled <- sample(dates, nsim, prob=probs, replace=TRUE)
+    }
     uncal <- uncalibrate(sampled)
     return(uncal$rCRA)
 }
 
-
-gc()
-
-
-
-spatial_test <- function(mySpdf) {
+spatial_test <- function(mySpdf, model='exp', a=-0.001, nsim=1000, ncores=10) {
     t0 <- Sys.time()
 
-    myMat <- t(mapply(sampleDates, nsim=NSIM, mySpdf$sim_start, mySpdf$sim_end))
+    myMat <- t(mapply(sampleDates, model=model, a=a, nsim=nsim, mySpdf$sim_start, mySpdf$sim_end))
     mySpdf$pval <- NA
 
     clusters <- unique(mySpdf$cluster)
 
-
-    #resList <- vector("list", length=length(clusters))
-
-    #pb <- txtProgressBar(0, length(clusters), 0, style=3)
-
-    cl <- makeCluster(NCORES, outfile="")
+    cl <- makeCluster(ncores)
     clusterEvalQ(cl, library(sp))
-    clusterEvalQ(cl, dyn.load('calibc.so'))
-    clusterExport(cl, c("Spd", "myMat", "mySpdf", "Calib", "CalibC", "CALCURVE", "NSIM", "foo", "tst", "sumZscore", "filterspd"), envir=environment())
+    #clusterEvalQ(cl, dyn.load('calibc.so'))
+    clusterExport(cl, c("Spd", "myMat", "mySpdf", "Calib", "CALCURVE", "foo", "tst", "sumZscore", "filterspd"), envir=environment())
 
 
     res <- parLapply(cl, clusters, function(i) {
@@ -164,7 +114,7 @@ spatial_test <- function(mySpdf) {
         #clusterEvalQ(cl, library(rcarbon))
         
 
-        spds <- lapply(1:NSIM, function(x) {
+        spds <- lapply(1:nsim, function(x) {
             #sim_cal <- calibrate(sm[,x], rep(30, nrow(sm)), normalised=F, verbose=F)
             #sim_spd <- spd(sim_cal, rep(30, nrow(sm)), timeRange=c(START, END), verbose=FALSE)
             sim_spd <- Spd(sm[,x], rep(30, nrow(sm)))
@@ -193,7 +143,7 @@ spatial_test <- function(mySpdf) {
         #df <- data.frame("calBP"=real_spd$grid$calBP, "PrDens"=real_spd$grid$PrDens, "lo"=f$lo, "hi"=f$hi)
         df <- data.frame("calBP"=CALCURVE[which(CALCURVE$cal < START & CALCURVE$cal > END),1], "PrDens"=real_spd, "lo"=f$lo, "hi"=f$hi)
 
-        spdmodeltest <- list("result"=df, "pval"=p, "siteCluster"=i)
+        spdmodeltest <- list("result"=df, "pval"=p$p, "zscore"=p$z, "siteCluster"=i)
         class(spdmodeltest) <- c(class(spdmodeltest), "SpdModelTest")
 
         #resList[[i]] <- spdmodeltest
@@ -220,7 +170,7 @@ Plot <- function(x) {
     xlim <- c(extent(x)[1]-1, extent(x)[2]+1)
     ylim <- c(extent(x)[3]-1, extent(x)[4]+1)
     plot(BORDERS, col="lightgrey", border="white", xlim=xlim, ylim=ylim)
-    cls <- s[[1]][which(!duplicated(s[[1]]$cluster)),]
+    cls <- x[which(!duplicated(x$cluster)),]
     plot(x, pch=20, add=T)
     sig <- x[x$pval < 0.05,]
     plot(sig, pch=20, col="red", add=T)
@@ -231,7 +181,21 @@ Plot <- function(x) {
 Plt <- function(x) {
     par(mfrow=c(ceiling(length(x) / 2),2), mar=rep(2, 4))
     for (i in 1:length(x)) {
-        plot(x[[i]], main=i)
+        #plot(x[[i]], main=i)
+        Plt2(x[[i]])
     }
 }
 
+Plt2 <- function(x) {
+    plot(x$result$calBP, x$result$PrDens, type="l", xlim=c(max(x$result$calBP), min(x$result$calBP)))
+    polygon(c(x$result$calBP, rev(x$result$calBP)), c(x$result$lo, rev(x$result$hi)), col="grey90", border=NA)
+    lo <- ifelse(x$result$PrDens < x$result$lo, x$result$PrDens, 0)
+    hi <- ifelse(x$result$PrDens > x$result$hi, x$result$PrDens, 0)
+    lo[0] <- 0
+    lo[length(lo)] <- 0
+    hi[0] <- 0
+    hi[length(hi)] <- 0
+    polygon(x$result$calBP, lo, col="cyan", border=NA)
+    polygon(x$result$calBP, hi, col="red", border=NA)
+    lines(x$result$calBP, x$result$PrDens, lwd=1.2)
+}
