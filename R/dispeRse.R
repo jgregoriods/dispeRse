@@ -33,7 +33,8 @@ run_disp <- function(environment, terrain, r, phi, coords, iter, t) {
                 population=as.double(population), env=as.double(env_values), arrival=as.integer(arrival),
                 r=as.double(r), phi=as.double(phi),
                 start=as.integer(start), x=as.integer(x), y=as.integer(y), iter=as.integer(iter),
-                num_origins=as.integer(length(x)), t=as.double(t), terrain=as.integer(terr_values))
+                num_origins=as.integer(length(x)), t=as.double(t), terrain=as.integer(terr_values),
+                PACKAGE="dispeRse")
 
     res <- raster(matrix(ret_val$arrival, nrow=NROW, ncol=NCOL, byrow=TRUE))
     res[values(res) == 0] <- NA

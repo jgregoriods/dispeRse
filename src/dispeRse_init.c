@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <R_ext/Rdynload.h>
 
-extern void run_model(int* nrow, int* ncol, double* population, double* env, int* arrival, double* r, double* phi, int* start, int* x, int* y, int* iter, int* num_origins, double* t, int* terrain);
+extern void run_model(int*, int*, double*, double*, int*, double*, double*, int*, int*, int*, int*, int*, double*, int*);
 
 static const R_CMethodDef CEntries[] = {
     {"run_model", (DL_FUNC) &run_model, 14},
@@ -10,6 +10,6 @@ static const R_CMethodDef CEntries[] = {
 
 void R_init_dispeRse(DllInfo *dll)
 {
-    R_registerRoutines(dll, NULL, NULL, NULL, NULL);
+    R_registerRoutines(dll, CEntries, NULL, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }
