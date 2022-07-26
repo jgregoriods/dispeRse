@@ -1,0 +1,16 @@
+Package: dispeRse
+Title: Lorem Ipsum
+Version: 1.0
+Authors@R: 
+    person(given = "Jonas",
+           family = "Gregorio de Souza",
+           role = c("aut", "cre"),
+           email = "jonas.gregorio@gmail.com",
+           comment = c(ORCID = "0000-0001-6032-4443"))
+Description: lorem ipsum.
+Depends: R (>= 3.5.0)
+Imports: gdistance, raster
+License: MIT + file LICENSE 
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.2.1
