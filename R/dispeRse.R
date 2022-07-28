@@ -1,5 +1,23 @@
-#' Lorem ipsum dolor.
+#' Simulates first arrival times from one or more origins.
+#' The model uses density-dependent growth and emigration.
+#' The carrying capacity, growth rates and mobility are
+#' allowed to vary with the environment.
+#' 
+#' The simulation starts with n populated cells at
+#' coordinates and start times defined by the parameter
+#' coords and runs for a number of time. Each time step
+#' corresponds to a generation (defined by parameter t).
+#' Growth is applied to every populated cell using a
+#' logistic model and emigration to a neighboring cell is
+#' calculated from an asymptotic threshold model.
 #'
+#' The carrying capacity in the density-dependend growth
+#' and emigration models is determined by an environment
+#' raster, which normally will represent a variable assumed
+#' to affect population density (e.g. net primary
+#' production) scaled to 0-1 range. Migrants are moved to
+#' the cell with the highest environmental value
+#' 
 #' @import raster
 #' @import sp
 #' @param environment lorem
@@ -10,6 +28,8 @@
 #' @param iter lorem
 #' @param t lorem
 #' @param dist lorem
+#' @param accel lorem
+#' @param gamma lorem
 #' @return lorem
 #' @export
 #' @useDynLib dispeRse, .registration = TRUE
