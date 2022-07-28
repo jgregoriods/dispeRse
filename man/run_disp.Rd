@@ -4,7 +4,7 @@
 \alias{run_disp}
 \title{Lorem ipsum dolor.}
 \usage{
-run_disp(environment, terrain, r, phi, coords, iter, t)
+run_disp(environment, terrain, r, phi, coords, iter, t, dist)
 }
 \arguments{
 \item{environment}{lorem}

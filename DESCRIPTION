@@ -9,7 +9,7 @@ Authors@R:
            comment = c(ORCID = "0000-0001-6032-4443"))
 Description: lorem ipsum.
 Depends: R (>= 3.5.0)
-Imports: gdistance, raster
+Imports: gdistance, raster, sp
 License: MIT + file LICENSE 
 Encoding: UTF-8
 LazyData: true

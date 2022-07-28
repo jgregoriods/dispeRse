@@ -19,11 +19,13 @@ rv[rv>2] <- 2
 terr <- terr+rv
 terr[terr>=3] <- 1
 
-df <- data.frame(x=c(38,72), y=c(36,25), date=c(10500,7700))
-coords <- to_grid(df, env)
+#df <- data.frame(x=c(38,72), y=c(36,25), date=c(10500,7700))
+df <- data.frame(x=38, y=36, date=10500)
 
-res <- run_disp(env, terr, 0.025, 0.67, coords, 400, 20)
+res <- run_disp(env, terr, 0.02, 0.5, df, 400, 20, 25)
 
 plot(res, col=viridis(255))
 contour(res, levels=seq(10000, 0, -1000), add=T)
+
+b <- spTransform(b, proj4string(res))
 plot(b, add=T)

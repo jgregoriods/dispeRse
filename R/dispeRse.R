@@ -1,6 +1,7 @@
 #' Lorem ipsum dolor.
 #'
 #' @import raster
+#' @import sp
 #' @param environment lorem
 #' @param terrain lorem
 #' @param r lorem
@@ -8,10 +9,21 @@
 #' @param coords lorem
 #' @param iter lorem
 #' @param t lorem
+#' @param dist lorem
 #' @return lorem
 #' @export
 #' @useDynLib dispeRse, .registration = TRUE
-run_disp <- function(environment, terrain, r, phi, coords, iter, t) {
+run_disp <- function(environment, terrain, r, phi, coords, iter, t, dist) {
+
+    ROBINSON <- CRS("+proj=robin +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs")
+    WGS84 <- CRS("+init=epsg:4326")
+
+    coordinates(coords) <- ~x+y
+    proj4string(coords) <- proj4string(environment)
+
+    environment <- projectRaster(environment, res=dist*1000, crs=ROBINSON)
+    terrain <- projectRaster(terrain, environment, method="ngb")
+    coords <- spTransform(coords, ROBINSON)
 
     NROW <- nrow(environment)
     NCOL <- ncol(environment)
@@ -25,9 +37,11 @@ run_disp <- function(environment, terrain, r, phi, coords, iter, t) {
     terrain[is.na(values(terrain))] <- -1
     terr_values <- values(terrain)
 
-    x <- coords$x
-    y <- coords$y
-    start <- coords$date
+    grid_coords <- to_grid(coords, environment)
+
+    x <- grid_coords$x
+    y <- grid_coords$y
+    start <- grid_coords$date
 
     ret_val <- .C("run_model", nrow=as.integer(NROW), ncol=as.integer(NCOL),
                 population=as.double(population), env=as.double(env_values), arrival=as.integer(arrival),
@@ -38,6 +52,7 @@ run_disp <- function(environment, terrain, r, phi, coords, iter, t) {
 
     res <- raster(matrix(ret_val$arrival, nrow=NROW, ncol=NCOL, byrow=TRUE))
     res[values(res) == 0] <- NA
+    proj4string(res) <- proj4string(environment)
     extent(res) <- extent(environment)
     return(res)
 }
@@ -77,12 +92,14 @@ sim_dispersal <- function(start_coords, start_dates, environment, base_speed=1) 
 #' @return lorem
 #' @export
 to_grid <- function(coords, grid) {
+    #coordinates(coords) <- ~x+y
+    #proj4string(coords) <- proj4string(grid)
     grid_coords <- data.frame(matrix(ncol=3, nrow=0))
     colnames(grid_coords) <- c("x", "y", "date")
     for (i in 1:nrow(coords)) {
-        grid_coords[i,1] <- round((coords[i,1] - xmin(grid)) / res(grid)[1])
-        grid_coords[i,2] <- round((ymax(grid) - coords[i,2]) / res(grid)[2])
-        grid_coords[i,3] <- coords[i,3]
+        grid_coords[i,1] <- round((coords$x[i] - xmin(grid)) / res(grid)[1])
+        grid_coords[i,2] <- round((ymax(grid) - coords$y[i]) / res(grid)[2])
+        grid_coords[i,3] <- coords$date[i]
     }
     return(grid_coords)
 }
