@@ -5,7 +5,7 @@
 
 void run_model(int* nrow, int* ncol, double* population, double* env, int* arrival,
                double* r, double* phi, int* start,
-               int* x, int* y, int* iter, int* num_origins, double* t, int* terrain) {
+               int* x, int* y, int* iter, int* num_origins, double* t, int* terrain, int* accel, double* gamma) {
     int i, j;
     int max_agents = *nrow * *ncol * 2;
     double local_k;
@@ -33,7 +33,8 @@ void run_model(int* nrow, int* ncol, double* population, double* env, int* arriv
     for (i = 0; i < max_agents; ++i) model.active[i] = 0;
     model.tick = max_age;
 
-    model.gamma = 1;
+    model.gamma = *gamma;
+    model.accel = *accel;
 
     int active_agents = 0;
     for (i = 0; i < *num_origins; ++i) {

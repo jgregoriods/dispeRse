@@ -2,9 +2,18 @@
 
 #include "main.h"
 
-Coord* get_neighbors_far(Coord coord, Grid* grid) {
+Coord* get_neighbors_far(Coord coord, Grid* grid, int accel) {
     int i;
-    Coord* neighbors = malloc(sizeof(Coord) * 36);
+    
+    int num_cells = NCELL[accel-2];
+
+    const Coord* DIST_CELLS;
+    
+    if (accel == 2) DIST_CELLS = CELLS2;
+    else if (accel == 3) DIST_CELLS = CELLS3;
+    else if (accel == 4) DIST_CELLS = CELLS4;
+
+    Coord* neighbors = malloc(sizeof(Coord) * num_cells);
     int k = 0;
     int new_x, new_y;
     for (i = 0; i < 8; ++i) {
@@ -15,15 +24,16 @@ Coord* get_neighbors_far(Coord coord, Grid* grid) {
             neighbors[k++] = neighbor;
         }
     }
-    for (i = 0; i < 28; ++i) {
-        new_x = coord.x + CELLS3[i].x;
-        new_y = coord.y + CELLS3[i].y;
+
+    for (i = 0; i < (num_cells - 8); ++i) {
+        new_x = coord.x + DIST_CELLS[i].x;
+        new_y = coord.y + DIST_CELLS[i].y;
         if (new_x >= 0 && new_x < grid->ncol && new_y >= 0 && new_y < grid->nrow && grid->terr[new_y * grid->ncol + new_x] == CORRIDOR) {
             Coord neighbor = {new_x, new_y};
             neighbors[k++] = neighbor;
         }
     }
-    if (k < 36) neighbors[k].x = TURNOFF;
+    if (k < num_cells) neighbors[k].x = TURNOFF;
     return neighbors;
 }
 
@@ -61,6 +71,8 @@ void fission(Model* model, Grid* grid) {
     int i, j;
     int n = model->agent_count;
     int num_cells = 8;
+    int far_cells = NCELL[model->accel - 2];
+
     for (i = 0; i < n; ++i) {
         if (model->active[i] == 0) continue;
 
@@ -77,9 +89,9 @@ void fission(Model* model, Grid* grid) {
             Coord* free_nbr;
             int ncell = num_cells;
             if (grid->terr[coord.y * grid->ncol + coord.x] == CORRIDOR) {
-                nbr = get_neighbors_far(coord, grid);
-                free_nbr = malloc(sizeof(Coord) * 36);
-                ncell = 36;
+                nbr = get_neighbors_far(coord, grid, model->accel);
+                free_nbr = malloc(sizeof(Coord) * far_cells);
+                ncell = far_cells;
             } else {
                 nbr = get_neighbors(coord, grid);
                 free_nbr = malloc(sizeof(Coord) * num_cells);

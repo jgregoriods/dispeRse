@@ -13,7 +13,7 @@
 #' @return lorem
 #' @export
 #' @useDynLib dispeRse, .registration = TRUE
-run_disp <- function(environment, terrain, r, phi, coords, iter, t, dist) {
+run_disp <- function(environment, terrain, r, phi, coords, iter, t, dist, accel, gamma) {
 
     ROBINSON <- CRS("+proj=robin +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs")
     WGS84 <- CRS("+init=epsg:4326")
@@ -48,6 +48,7 @@ run_disp <- function(environment, terrain, r, phi, coords, iter, t, dist) {
                 r=as.double(r), phi=as.double(phi),
                 start=as.integer(start), x=as.integer(x), y=as.integer(y), iter=as.integer(iter),
                 num_origins=as.integer(length(x)), t=as.double(t), terrain=as.integer(terr_values),
+                accel=as.integer(accel), gamma=as.double(gamma),
                 PACKAGE="dispeRse")
 
     res <- raster(matrix(ret_val$arrival, nrow=NROW, ncol=NCOL, byrow=TRUE))
