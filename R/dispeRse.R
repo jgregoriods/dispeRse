@@ -42,7 +42,7 @@
 #' generation.
 #' @param accel Numeric. The factor by which the usual distance is increased
 #' along corridors. E.g. if dist = 50 km and accel = 3, migrants can move up to
-#' 150 km along a corridor.
+#' 150 km along a corridor. Must range from 2 to 4.
 #' @param gamma Numeric. A power that controls the shape of the dependency
 #' between r and the environment.
 #' @return A RasterLayer with simulated arrival times.
@@ -50,10 +50,19 @@
 #' @useDynLib dispeRse, .registration = TRUE
 simulate_dispersal <- function(environment, terrain, coords, num_iter, r=0.025,
                                phi=0.5, t=25, dist=50, accel=3, gamma=1) {
+
     print("Preparing rasters...")
 
+    df <- df[order(-df$date),]
+
+    old_proj <- NULL
+    old_res <- NULL
+    if (!is.projected(CRS(proj4string(environment)))) {
+        old_proj <- proj4string(environment)
+        old_res <- res(environment)
+    }
+
     ROBINSON <- CRS("+proj=robin +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs")
-    WGS84 <- CRS("+init=epsg:4326")
 
     coordinates(coords) <- ~x+y
     proj4string(coords) <- proj4string(environment)
@@ -95,15 +104,22 @@ simulate_dispersal <- function(environment, terrain, coords, num_iter, r=0.025,
     res[values(res) == 0] <- NA
     proj4string(res) <- proj4string(environment)
     extent(res) <- extent(environment)
+
+    if (!is.null(old_proj)) {
+        res <- projectRaster(res, crs=CRS(old_proj), res=old_res)
+    }
+
     return(res)
 }
 
-#' Lorem ipsum dolor.
+#' Convert from geographic coordinates in a given projection system to the
+#' relative position in rows and columns of a grid.
 #'
 #' @import raster
-#' @param coords A SpatialPointsDataFrame.
-#' @param grid A RasterLayer.
-#' @return A DataFrame.
+#' @param coords A SpatialPointsDataFrame. Must contain a column dates with the
+#' start date of the dispersal from each point.
+#' @param grid A RasterLayer. The coordinates will be converted to this grid.
+#' @return A DataFrame with the converted coordinates.
 .to_grid <- function(coords, grid) {
     grid_coords <- data.frame(matrix(ncol=3, nrow=0))
     colnames(grid_coords) <- c("x", "y", "date")

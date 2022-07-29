@@ -41,7 +41,7 @@ generation.}
 
 \item{accel}{Numeric. The factor by which the usual distance is increased
 along corridors. E.g. if dist = 50 km and accel = 3, migrants can move up to
-150 km along a corridor.}
+150 km along a corridor. Must range from 2 to 4.}
 
 \item{gamma}{Numeric. A power that controls the shape of the dependency
 between r and the environment.}
