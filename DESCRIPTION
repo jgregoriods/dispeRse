@@ -7,7 +7,7 @@ Authors@R:
            role = c("aut", "cre"),
            email = "jonas.gregorio@gmail.com",
            comment = c(ORCID = "0000-0001-6032-4443"))
-Description: lorem ipsum.
+Description: Lorem ipsum.
 Depends: R (>= 3.5.0)
 Imports: raster, sp
 License: MIT + file LICENSE 

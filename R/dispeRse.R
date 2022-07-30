@@ -27,16 +27,17 @@
 #' 
 #' @import raster
 #' @import sp
-#' @param environment A RasterLayer. The local K and r depend on its values,
-#' which preferably range from 0 to 1 (fraction of maximum K).
-#' @param terrain A RasterLayer. Values must be 0 = no effect, 1 = barrier,
-#' 2 = corridor.
-#' @param r Numeric. The annual growth rate as a fraction.
-#' @param phi Numeric. The fission threshold as a fraction of carrying capacity.
+#' @param environment A RasterLayer. Environmental values that affect carrying
+#' capacity and growth rate. Typically given as a fraction (0-1) of the max K.
+#' @param terrain A RasterLayer. Cells with value 1 are barriers and cells with
+#' value 2 are corridors.
 #' @param coords A DataFrame. Must contain columns x, y, and date with the
 #' coordinates and starting date (yr BP) of each origin. Coordinates must be in
 #' the same system as the environment and terrain layers.
-#' @param num_iter Numeric. Number of iterations (steps) of the model.
+#' @param num_iter Numeric. Number of steps to run the model for.
+#' @param r Numeric. The annual growth rate as a decimal.
+#' @param phi Numeric. The fission threshold as a fraction of (local) carrying
+#' capacity.
 #' @param t Numeric. The duration, in years, of a generation (model time step).
 #' @param dist Numeric. The distance, in km, that migrants move over a
 #' generation.
@@ -91,11 +92,11 @@ simulate_dispersal <- function(environment, terrain, coords, num_iter, r=0.025,
 
     print("Running model...")
     ret_val <- .C("run_model", nrow=as.integer(NROW), ncol=as.integer(NCOL),
-                population=as.double(population), env=as.double(env_values),
-                arrival=as.integer(arrival), r=as.double(r), phi=as.double(phi),
-                start=as.integer(start), x=as.integer(x), y=as.integer(y),
-                iter=as.integer(num_iter), num_origins=as.integer(length(x)),
-                t=as.double(t), terrain=as.integer(terr_values),
+                environment=as.double(env_values), terrain=as.integer(terr_values),
+                population=as.double(population), arrival=as.integer(arrival),
+                x=as.integer(x), y=as.integer(y), start=as.integer(start),
+                num_origins=as.integer(length(x)), num_iter=as.integer(num_iter), 
+                r=as.double(r), phi=as.double(phi), t=as.double(t),
                 accel=as.integer(accel), gamma=as.double(gamma),
                 PACKAGE="dispeRse")
     print("Done.")

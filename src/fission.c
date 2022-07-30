@@ -1,7 +1,17 @@
 #include <stdlib.h>
 
-#include "main.h"
+#include "dispeRse.h"
 
+/**
+ * @brief Returns cells with terrain values of corridor wihin a distance (in
+ * cells) defined by the parameter accel.
+ * 
+ * @param coord The coordinates of the central cell.
+ * @param grid The model grid structure.
+ * @param accel A parameter between 2 and 4 that determines the max distance of
+ * the search.
+ * @return An array of coord structures.
+ */
 Coord* get_neighbors_far(Coord coord, Grid* grid, int accel) {
     int i;
     
@@ -28,7 +38,7 @@ Coord* get_neighbors_far(Coord coord, Grid* grid, int accel) {
     for (i = 0; i < (num_cells - 8); ++i) {
         new_x = coord.x + DIST_CELLS[i].x;
         new_y = coord.y + DIST_CELLS[i].y;
-        if (new_x >= 0 && new_x < grid->ncol && new_y >= 0 && new_y < grid->nrow && grid->terr[new_y * grid->ncol + new_x] == CORRIDOR) {
+        if (new_x >= 0 && new_x < grid->ncol && new_y >= 0 && new_y < grid->nrow && grid->terrain[new_y * grid->ncol + new_x] == CORRIDOR) {
             Coord neighbor = {new_x, new_y};
             neighbors[k++] = neighbor;
         }
@@ -37,6 +47,13 @@ Coord* get_neighbors_far(Coord coord, Grid* grid, int accel) {
     return neighbors;
 }
 
+/**
+ * @brief Returns cells in the Moore neighborhood of a given cell.
+ * 
+ * @param coord The coordinates of the central cell.
+ * @param grid The model grid structure.
+ * @return An array of coord structures.
+ */
 Coord* get_neighbors(Coord coord, Grid* grid) {
     int i;
     int num_cells = 8;
@@ -61,12 +78,25 @@ Coord* get_neighbors(Coord coord, Grid* grid) {
     return neighbors;
 }
 
-double fission_ta(double n, double cta, double k) {
-    if (cta >= n/k) return 0;
-    else return n * (1.0 - (cta / (n/k)));
-    //else return n - cta;
+/**
+ * @brief Asymptotic threshold model of emigration.
+ * 
+ * @param n The population.
+ * @param phi The threshold as a fraction of the local carrying capacity.
+ * @param k The local carrying capacity.
+ * @return The number of migrants. 
+ */
+double fission_ta(double n, double phi, double k) {
+    if (phi >= n/k) return 0;
+    else return n * (1.0 - (phi / (n/k)));
 }
 
+/**
+ * @brief Applies migration to each populated cell in the model's grid.
+ * 
+ * @param model The model structure with the fission parameter.
+ * @param grid The grid structure on which migration will be applied.
+ */
 void fission(Model* model, Grid* grid) {
     int i, j;
     int n = model->agent_count;
@@ -78,17 +108,17 @@ void fission(Model* model, Grid* grid) {
 
         Coord coord = model->agents[i];
 
-        if (grid->terr[coord.y * grid->ncol + coord.x] == BARRIER) continue;
+        if (grid->terrain[coord.y * grid->ncol + coord.x] == BARRIER) continue;
 
         double n = grid->population[coord.y * grid->ncol + coord.x];
-        double local_k = grid->env[coord.y * grid->ncol + coord.x];
+        double local_k = grid->environment[coord.y * grid->ncol + coord.x];
         double migrants = fission_ta(n, model->phi, local_k);
 
         if (migrants > 0) {
             Coord* nbr;
             Coord* free_nbr;
             int ncell = num_cells;
-            if (grid->terr[coord.y * grid->ncol + coord.x] == CORRIDOR) {
+            if (grid->terrain[coord.y * grid->ncol + coord.x] == CORRIDOR) {
                 nbr = get_neighbors_far(coord, grid, model->accel);
                 free_nbr = malloc(sizeof(Coord) * far_cells);
                 ncell = far_cells;
@@ -102,8 +132,8 @@ void fission(Model* model, Grid* grid) {
                 if (nbr[j].x == TURNOFF) {
                     break;
                 }
-                double nbr_k = grid->env[nbr[j].y * grid->ncol + nbr[j].x];
-                if (grid->population[nbr[j].y * grid->ncol + nbr[j].x] < (nbr_k * model->phi) && grid->env[nbr[j].y * grid->ncol + nbr[j].x] > 0) {
+                double nbr_k = grid->environment[nbr[j].y * grid->ncol + nbr[j].x];
+                if (grid->population[nbr[j].y * grid->ncol + nbr[j].x] < (nbr_k * model->phi) && grid->environment[nbr[j].y * grid->ncol + nbr[j].x] > 0) {
                     free_nbr[len++] = nbr[j];
                 }                    
             }
@@ -114,7 +144,7 @@ void fission(Model* model, Grid* grid) {
                 int best_cell = 0;
                 double best_env = 0;
                 for (j = 0; j < len; ++j) {
-                    double score = grid->env[free_nbr[j].y * grid->ncol + free_nbr[j].x];
+                    double score = grid->environment[free_nbr[j].y * grid->ncol + free_nbr[j].x];
                     if (score > best_env) {
                         best_env = score;
                         best_cell = j;

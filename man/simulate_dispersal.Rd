@@ -18,21 +18,22 @@ simulate_dispersal(
 )
 }
 \arguments{
-\item{environment}{A RasterLayer. The local K and r depend on its values,
-which preferably range from 0 to 1 (fraction of maximum K).}
+\item{environment}{A RasterLayer. Environmental values that affect carrying
+capacity and growth rate. Typically given as a fraction (0-1) of the max K.}
 
-\item{terrain}{A RasterLayer. Values must be 0 = no effect, 1 = barrier,
-2 = corridor.}
+\item{terrain}{A RasterLayer. Cells with value 1 are barriers and cells with
+value 2 are corridors.}
 
 \item{coords}{A DataFrame. Must contain columns x, y, and date with the
 coordinates and starting date (yr BP) of each origin. Coordinates must be in
 the same system as the environment and terrain layers.}
 
-\item{num_iter}{Numeric. Number of iterations (steps) of the model.}
+\item{num_iter}{Numeric. Number of steps to run the model for.}
 
-\item{r}{Numeric. The annual growth rate as a fraction.}
+\item{r}{Numeric. The annual growth rate as a decimal.}
 
-\item{phi}{Numeric. The fission threshold as a fraction of carrying capacity.}
+\item{phi}{Numeric. The fission threshold as a fraction of (local) carrying
+capacity.}
 
 \item{t}{Numeric. The duration, in years, of a generation (model time step).}
 
