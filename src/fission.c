@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <math.h>
 
 #include "dispeRse.h"
 
@@ -111,6 +112,7 @@ void fission(Model* model, Grid* grid) {
         if (grid->terrain[coord.y * grid->ncol + coord.x] == BARRIER) continue;
 
         double n = grid->population[coord.y * grid->ncol + coord.x];
+        //double local_k = pow(grid->environment[coord.y * grid->ncol + coord.x], model->gamma);
         double local_k = grid->environment[coord.y * grid->ncol + coord.x];
         double migrants = fission_ta(n, model->phi, local_k);
 
@@ -132,8 +134,10 @@ void fission(Model* model, Grid* grid) {
                 if (nbr[j].x == TURNOFF) {
                     break;
                 }
+                //double nbr_k = pow(grid->environment[nbr[j].y * grid->ncol + nbr[j].x], model->gamma);
                 double nbr_k = grid->environment[nbr[j].y * grid->ncol + nbr[j].x];
                 if (grid->population[nbr[j].y * grid->ncol + nbr[j].x] < (nbr_k * model->phi) && grid->environment[nbr[j].y * grid->ncol + nbr[j].x] > 0) {
+                //if (grid->population[nbr[j].y * grid->ncol + nbr[j].x] < model->phi && grid->environment[nbr[j].y * grid->ncol + nbr[j].x] > 0) {
                     free_nbr[len++] = nbr[j];
                 }                    
             }

@@ -11,11 +11,12 @@
 #'
 #' The carrying capacity (K) in the density-dependend growth and emigration
 #' models is determined by an environment raster, which normally represents a
-#' variable assumed to affect population density (e.g. net primary production)
-#' scaled to 0-1 range.
+#' variable or combination of variables assumed to affect population density
+#' (e.g. net primary production, elevation) scaled to 0-1 range.
 #'
-#' While carrying capacity depends linearly on the environment, the dependence
-#' of the growth rate is allowed to be controlled by a power gamma.
+#' The dependence of the carrying capacity and growth rate on the environment
+#' is allowed to be controlled by a power gamma. By default, the dependence is
+#' linear (gamma = 1).
 #'
 #' For emigration, a threshold phi is considered, expressed as a fraction of
 #' carrying capacity. Migrants move to the cell with the highest environmental

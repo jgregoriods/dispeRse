@@ -64,7 +64,7 @@ void run_model(int *nrow, int *ncol, double *environment, int *terrain,
             model.active[active_agents] = 1;
             model.agents[active_agents++] = init_cell;
             grid.arrival[y[i] * *ncol + x[i]] = max_age;
-            local_k = grid.environment[y[i] * *ncol + x[i]];
+            local_k = pow(grid.environment[y[i] * *ncol + x[i]], model.gamma);
             grid.population[y[i] * *ncol + x[i]] = local_k;
         }
     }
@@ -82,7 +82,7 @@ void run_model(int *nrow, int *ncol, double *environment, int *terrain,
                 model.active[model.agent_count] = 1;
                 model.agents[model.agent_count++] = init_cell;
                 grid.arrival[y[j] * *ncol + x[j]] = model.tick;
-                local_k = grid.environment[y[j] * *ncol + x[j]];
+                local_k = pow(grid.environment[y[j] * *ncol + x[j]], model.gamma);
                 grid.population[y[j] * *ncol + x[j]] = local_k;
                 model.agents[model.agent_count].x = TURNOFF;
             }
