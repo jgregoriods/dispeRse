@@ -100,6 +100,6 @@ void fission(Model *model, Grid *grid);
 void run_model(int *nrow, int *ncol, double *environment, int *terrain,
                double *population, int *arrival, int *x, int *y, int *start,
                int *num_origins, int *num_iter, double *r, double *phi,
-               double *t, int *accel, double *gamma);
+               double *t, int *accel, double *gamma, int *updates);
 
 #endif

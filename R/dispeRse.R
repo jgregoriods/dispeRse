@@ -35,7 +35,7 @@
 #' @param coords A DataFrame. Must contain columns x, y, and date with the
 #' coordinates and starting date (yr BP) of each origin. Coordinates must be in
 #' the same system as the environment and terrain layers.
-#' @param num_iter Numeric. Number of steps to run the model for.
+#' @param years Numeric. Number of years to run the model for.
 #' @param r Numeric. The annual growth rate as a decimal.
 #' @param phi Numeric. The fission threshold as a fraction of (local) carrying
 #' capacity.
@@ -50,8 +50,8 @@
 #' @return A RasterLayer with simulated arrival times.
 #' @export
 #' @useDynLib dispeRse, .registration = TRUE
-simulate_dispersal <- function(environment, terrain, coords, num_iter, r=0.025,
-                               phi=0.5, t=25, dist=50, accel=3, gamma=1) {
+simulate_dispersal <- function(environment, terrain, coords, years, r=0.025,
+                               phi=0.5, t=25, dist=50, accel=3, gamma=1, updates=NULL) {
 
     print("Preparing rasters...")
 
@@ -79,8 +79,9 @@ simulate_dispersal <- function(environment, terrain, coords, num_iter, r=0.025,
     population <- rep(0, NROW*NCOL)
     arrival <- rep(0, NROW*NCOL)
 
-    environment[is.na(values(environment))] <- -1
-    env_values <- values(environment)
+    environment[is.na(as.vector(values(environment)))] <- -1
+
+    env_values <- as.vector(values(environment))
 
     terrain[is.na(values(terrain))] <- -1
     terr_values <- values(terrain)
@@ -91,6 +92,10 @@ simulate_dispersal <- function(environment, terrain, coords, num_iter, r=0.025,
     y <- grid_coords$y
     start <- grid_coords$date
 
+    num_iter <- ceiling(years / t)
+    update_step = -1
+    if (!is.null(updates)) update_step <- c(ceiling((start[1] - updates) / t), -1)
+
     print("Running model...")
     ret_val <- .C("run_model", nrow=as.integer(NROW), ncol=as.integer(NCOL),
                 environment=as.double(env_values), terrain=as.integer(terr_values),
@@ -99,7 +104,7 @@ simulate_dispersal <- function(environment, terrain, coords, num_iter, r=0.025,
                 num_origins=as.integer(length(x)), num_iter=as.integer(num_iter), 
                 r=as.double(r), phi=as.double(phi), t=as.double(t),
                 accel=as.integer(accel), gamma=as.double(gamma),
-                PACKAGE="dispeRse")
+                updates=as.integer(update_step), PACKAGE="dispeRse")
     print("Done.")
 
     res <- raster(matrix(ret_val$arrival, nrow=NROW, ncol=NCOL, byrow=TRUE))

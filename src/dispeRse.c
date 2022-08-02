@@ -37,10 +37,12 @@
 void run_model(int *nrow, int *ncol, double *environment, int *terrain,
                double *population, int *arrival, int *x, int *y, int *start,
                int *num_origins, int *num_iter, double *r, double *phi,
-               double *t, int *accel, double *gamma) {
+               double *t, int *accel, double *gamma, int *updates) {
     int i, j;
+    int ncell = *nrow * *ncol;
     int max_agents = *nrow * *ncol * 2;
     double local_k;
+    int index = 0;
 
     Grid grid = {*nrow, *ncol, population, environment, terrain, arrival};
     Model model = {*r, *phi, *t, *accel, *gamma};
@@ -85,6 +87,17 @@ void run_model(int *nrow, int *ncol, double *environment, int *terrain,
                 local_k = pow(grid.environment[y[j] * *ncol + x[j]], model.gamma);
                 grid.population[y[j] * *ncol + x[j]] = local_k;
                 model.agents[model.agent_count].x = TURNOFF;
+            }
+        }
+
+        if (i == updates[index]) {
+            index++;
+            grid.environment = malloc(sizeof(double) * ncell);
+            for (j = 0; j < ncell; j++) {
+                grid.environment[j] = environment[(ncell * index)+j];
+            }
+            for (j = 0; j < model.agent_count; j++) {
+                model.active[j] = 1;
             }
         }
     }
