@@ -130,6 +130,11 @@ void fission(Model* model, Grid* grid) {
             }
 
             int len = 0;
+            
+            ///
+            double tot = 0;
+            ///
+            
             for (j = 0; j < ncell; ++j) {
                 if (nbr[j].x == TURNOFF) {
                     break;
@@ -139,12 +144,28 @@ void fission(Model* model, Grid* grid) {
                 if (grid->population[nbr[j].y * grid->ncol + nbr[j].x] < (nbr_k * model->phi) && grid->environment[nbr[j].y * grid->ncol + nbr[j].x] > 0) {
                 //if (grid->population[nbr[j].y * grid->ncol + nbr[j].x] < model->phi && grid->environment[nbr[j].y * grid->ncol + nbr[j].x] > 0) {
                     free_nbr[len++] = nbr[j];
+
+                    ////
+                    tot += grid->environment[nbr[j].y * grid->ncol + nbr[j].x];
+                    ////
                 }                    
             }
 
             if (len > 0) {
                 grid->population[coord.y * grid->ncol + coord.x] -= migrants;
 
+                for (j = 0; j < len; j++) {
+                    double percent = grid->environment[free_nbr[j].y * grid->ncol + free_nbr[j].x] / tot;
+                    if (grid->arrival[free_nbr[j].y * grid->ncol + free_nbr[j].x] == 0) {
+                        grid->arrival[free_nbr[j].y * grid->ncol + free_nbr[j].x] = model->tick;
+                        model->active[model->agent_count] = 1;
+                        model->agents[model->agent_count++] = free_nbr[j];
+                        model->agents[model->agent_count].x = TURNOFF;
+                    }
+                    grid->population[free_nbr[j].y * grid->ncol + free_nbr[j].x] += (migrants * percent);
+                }
+
+                /*
                 int best_cell = 0;
                 double best_env = 0;
                 for (j = 0; j < len; ++j) {
@@ -162,6 +183,7 @@ void fission(Model* model, Grid* grid) {
                     model->agents[model->agent_count].x = TURNOFF;
                 }
                 grid->population[free_nbr[best_cell].y * grid->ncol + free_nbr[best_cell].x] += migrants;
+                */
 
             } else {
                 model->active[i] = 0;

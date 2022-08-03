@@ -8,27 +8,31 @@ simulate_dispersal(
   environment,
   terrain,
   coords,
-  num_iter,
+  years,
   r = 0.025,
   phi = 0.5,
   t = 25,
   dist = 50,
   accel = 3,
-  gamma = 1
+  gamma = 1,
+  updates = NULL
 )
 }
 \arguments{
-\item{environment}{A RasterLayer. Environmental values that affect carrying
-capacity and growth rate. Typically given as a fraction (0-1) of the max K.}
+\item{environment}{A RasterLayer or RasterStack. Environmental values that
+affect carrying capacity and growth rate. Typically given as a fraction (0-1)
+of the max K. If the environment will be updated during the experiment, this
+parameter must be a raster stack.}
 
 \item{terrain}{A RasterLayer. Cells with value 1 are barriers and cells with
-value 2 are corridors.}
+value 2 are corridors. If the terrain will be updated during the experiment,
+this parameter must be a raster stack.}
 
 \item{coords}{A DataFrame. Must contain columns x, y, and date with the
 coordinates and starting date (yr BP) of each origin. Coordinates must be in
 the same system as the environment and terrain layers.}
 
-\item{num_iter}{Numeric. Number of steps to run the model for.}
+\item{years}{Numeric. Number of years to run the model for.}
 
 \item{r}{Numeric. The annual growth rate as a decimal.}
 
@@ -46,6 +50,9 @@ along corridors. E.g. if dist = 50 km and accel = 3, migrants can move up to
 
 \item{gamma}{Numeric. A power that controls the shape of the dependency
 between r and the environment.}
+
+\item{updates}{Numeric. Optional vector with the years at which the
+environment and terrain grids will be updated.}
 }
 \value{
 A RasterLayer with simulated arrival times.
@@ -63,11 +70,12 @@ cell is calculated from an asymptotic threshold model.
 
 The carrying capacity (K) in the density-dependend growth and emigration
 models is determined by an environment raster, which normally represents a
-variable assumed to affect population density (e.g. net primary production)
-scaled to 0-1 range.
+variable or combination of variables assumed to affect population density
+(e.g. net primary production, elevation) scaled to 0-1 range.
 
-While carrying capacity depends linearly on the environment, the dependence
-of the growth rate is allowed to be controlled by a power gamma.
+The dependence of the carrying capacity and growth rate on the environment
+is allowed to be controlled by a power gamma. By default, the dependence is
+linear (gamma = 1).
 
 For emigration, a threshold phi is considered, expressed as a fraction of
 carrying capacity. Migrants move to the cell with the highest environmental

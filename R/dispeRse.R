@@ -28,10 +28,13 @@
 #' 
 #' @import raster
 #' @import sp
-#' @param environment A RasterLayer. Environmental values that affect carrying
-#' capacity and growth rate. Typically given as a fraction (0-1) of the max K.
+#' @param environment A RasterLayer or RasterStack. Environmental values that
+#' affect carrying capacity and growth rate. Typically given as a fraction (0-1)
+#' of the max K. If the environment will be updated during the experiment, this
+#' parameter must be a raster stack.
 #' @param terrain A RasterLayer. Cells with value 1 are barriers and cells with
-#' value 2 are corridors.
+#' value 2 are corridors. If the terrain will be updated during the experiment,
+#' this parameter must be a raster stack.
 #' @param coords A DataFrame. Must contain columns x, y, and date with the
 #' coordinates and starting date (yr BP) of each origin. Coordinates must be in
 #' the same system as the environment and terrain layers.
@@ -47,6 +50,8 @@
 #' 150 km along a corridor. Must range from 2 to 4.
 #' @param gamma Numeric. A power that controls the shape of the dependency
 #' between r and the environment.
+#' @param updates Numeric. Optional vector with the years at which the
+#' environment and terrain grids will be updated.
 #' @return A RasterLayer with simulated arrival times.
 #' @export
 #' @useDynLib dispeRse, .registration = TRUE
@@ -84,7 +89,7 @@ simulate_dispersal <- function(environment, terrain, coords, years, r=0.025,
     env_values <- as.vector(values(environment))
 
     terrain[is.na(values(terrain))] <- -1
-    terr_values <- values(terrain)
+    terr_values <- as.vector(values(terrain))
 
     grid_coords <- .to_grid(coords, environment)
 

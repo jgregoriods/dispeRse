@@ -12,11 +12,13 @@
  * @param ncol The number of colunms in the environment and terrain grids.
  * @param environment An array. Result of flattening a 2d grid. Environmental
  * values that affect carrying capacity (K) and growth rate. Typically given as
- * a fraction (0-1) of the max K.
+ * a fraction (0-1) of the max K. Notice that the array length can be a multiple
+ * of nrow * ncol if the environment is to be updated during the experiment.
  * @param terrain An array. Result of flattening a 2d grid. Cells with value 1
  * are barriers (prevent fission). Cells with value 2 are corridors - migrants
  * from those cells can move longer distances than the Moore neighborhood along
- * the corridor.
+ * the corridor. Notice that the array length can be a multiple of nrow * ncol
+ * if the terrain is to be updated during the experiment.
  * @param population An array that will store the population of each cell as a
  * fraction of max K.
  * @param arrival An array that will store the arrival time at each cell.
@@ -33,6 +35,8 @@
  * along corridors. Must range from 2 to 4.
  * @param gamma A power that controls the shape of the dependency between r and
  * the environment.
+ * @param updates An array specifying the model steps at which the environment
+ * and terrain grids will be updated.
  */
 void run_model(int *nrow, int *ncol, double *environment, int *terrain,
                double *population, int *arrival, int *x, int *y, int *start,
@@ -93,8 +97,10 @@ void run_model(int *nrow, int *ncol, double *environment, int *terrain,
         if (i == updates[index]) {
             index++;
             grid.environment = malloc(sizeof(double) * ncell);
+            grid.terrain = malloc(sizeof(int) * ncell);
             for (j = 0; j < ncell; j++) {
                 grid.environment[j] = environment[(ncell * index)+j];
+                grid.terrain[j] = terrain[(ncell * index)+j];
             }
             for (j = 0; j < model.agent_count; j++) {
                 model.active[j] = 1;
