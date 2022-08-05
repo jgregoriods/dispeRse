@@ -55,12 +55,15 @@
 #' @return A RasterLayer with simulated arrival times.
 #' @export
 #' @useDynLib dispeRse, .registration = TRUE
+#' @examples
+#' sim <- simulate_dispersal(euro_npp, raster::stack(replicate(8, euro_terr)),
+#' ppnb, 6000, updates=seq(10000,4000,-1000))
 simulate_dispersal <- function(environment, terrain, coords, years, r=0.025,
                                phi=0.5, t=25, dist=50, accel=3, gamma=1, updates=NULL) {
 
     print("Preparing rasters...")
 
-    df <- df[order(-df$date),]
+    coords <- coords[order(-coords$date),]
 
     old_proj <- NULL
     old_res <- NULL
@@ -69,14 +72,19 @@ simulate_dispersal <- function(environment, terrain, coords, years, r=0.025,
         old_res <- res(environment)
     }
 
-    ROBINSON <- CRS("+proj=robin +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs")
+    lon_0 <- round(mean(extent(environment)[1:2]))
+    lat_0 <- round(mean(extent(environment)[3:4]))
+    lim <- abs(extent(environment)[4] - extent(environment)[3]) / 6
+    lat_1 <- round(extent(environment)[3] + lim)
+    lat_2 <- round(extent(environment)[4] - lim)
+    crs <- CRS(paste("+proj=aea +lat_0=", lat_0, " +lon_0=", lon_0, " +lat_1=", lat_1, " +lat_2=", lat_2, " +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +type=crs", sep=""))
 
     coordinates(coords) <- ~x+y
     proj4string(coords) <- proj4string(environment)
 
-    environment <- projectRaster(environment, res=dist*1000, crs=ROBINSON)
+    environment <- projectRaster(environment, res=dist*1000, crs=crs)
     terrain <- projectRaster(terrain, environment, method="ngb")
-    coords <- spTransform(coords, ROBINSON)
+    coords <- spTransform(coords, crs)
 
     NROW <- nrow(environment)
     NCOL <- ncol(environment)
@@ -117,9 +125,9 @@ simulate_dispersal <- function(environment, terrain, coords, years, r=0.025,
     proj4string(res) <- proj4string(environment)
     extent(res) <- extent(environment)
 
-    if (!is.null(old_proj)) {
-        res <- projectRaster(res, crs=CRS(old_proj), res=old_res)
-    }
+    #if (!is.null(old_proj)) {
+    #    res <- projectRaster(res, crs=CRS(old_proj), res=old_res)
+    #}
 
     return(res)
 }
@@ -142,3 +150,24 @@ simulate_dispersal <- function(environment, terrain, coords, years, r=0.025,
     }
     return(grid_coords)
 }
+
+#' Land polygons.
+#' 
+#' @format A SpatialPolygonsDataFrame object.
+"euro_dates"
+
+#' Land polygons.
+#' 
+#' @format A SpatialPolygonsDataFrame object.
+"ppnb"
+
+#' Land polygons.
+#' 
+#' @format A SpatialPolygonsDataFrame object.
+#' 
+"euro_npp"
+
+#' Land polygons.
+#' 
+#' @format A SpatialPolygonsDataFrame object.
+"euro_terr"

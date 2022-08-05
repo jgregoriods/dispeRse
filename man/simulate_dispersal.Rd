@@ -85,3 +85,7 @@ Terrain can be represented by a raster specifying barriers (e.g. mountains),
 which block movement, and corridors (e.g. rivers), which accelerate movement.
 For the latter, an acceleration factor can be specified.
 }
+\examples{
+sim <- simulate_dispersal(euro_npp, raster::stack(replicate(8, euro_terr)),
+ppnb, 6000, updates=seq(10000,4000,-1000))
+}

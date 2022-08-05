@@ -134,7 +134,7 @@ void fission(Model* model, Grid* grid) {
             ///
             double tot = 0;
             ///
-            
+
             for (j = 0; j < ncell; ++j) {
                 if (nbr[j].x == TURNOFF) {
                     break;
@@ -162,7 +162,8 @@ void fission(Model* model, Grid* grid) {
                         model->agents[model->agent_count++] = free_nbr[j];
                         model->agents[model->agent_count].x = TURNOFF;
                     }
-                    grid->population[free_nbr[j].y * grid->ncol + free_nbr[j].x] += (migrants * percent);
+                    //grid->population[free_nbr[j].y * grid->ncol + free_nbr[j].x] += (migrants * percent);
+                    grid->population[free_nbr[j].y * grid->ncol + free_nbr[j].x] += (migrants / len);
                 }
 
                 /*
