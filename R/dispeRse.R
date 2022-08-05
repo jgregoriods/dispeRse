@@ -125,9 +125,9 @@ simulate_dispersal <- function(environment, terrain, coords, years, r=0.025,
     proj4string(res) <- proj4string(environment)
     extent(res) <- extent(environment)
 
-    #if (!is.null(old_proj)) {
-    #    res <- projectRaster(res, crs=CRS(old_proj), res=old_res)
-    #}
+    if (!is.null(old_proj)) {
+        res <- projectRaster(res, crs=CRS(old_proj), res=old_res)
+    }
 
     return(res)
 }
