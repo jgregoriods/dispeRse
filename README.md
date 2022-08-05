@@ -5,7 +5,11 @@
 jonas.gregorio@gmail.com<br/>
 [![ORCiD](https://img.shields.io/badge/ORCiD-0000--0001--7879--4531-green.svg)](https://orcid.org/0000-0001-6032-4443)<br/>
 
+<p>The growth rate is given by:</p>
 
+$$
+\frac{\partial{N}}{\partial{t}} = N r \left( 1 - \frac{N}{K} \right)
+$$
 
 <p>This is a test. Example formula:</p>
 
@@ -16,8 +20,10 @@ $$
 <p>The probability of fission:</p>
 
 $$
-p = \begin{cases}
-        0, & \text{if } \phi \leq \frac{N}{K} \\ 1-\frac{\phi}{(N/K)}, & \text{otherwise}
+m =
+    \begin{cases}
+        0 & \text{if } \phi \leq \frac{N}{K} \\
+        N - \phi K & \text{otherwise}
     \end{cases}
 $$
 
