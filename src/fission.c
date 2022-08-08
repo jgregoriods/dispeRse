@@ -27,11 +27,16 @@ Coord* get_neighbors_far(Coord coord, Grid* grid, int accel) {
     Coord* neighbors = malloc(sizeof(Coord) * num_cells);
     int k = 0;
     int new_x, new_y;
+
+    //////
+    double dist;
+    //////
     for (i = 0; i < 8; ++i) {
         new_x = coord.x + CELLS1[i].x;
         new_y = coord.y + CELLS1[i].y;
+        dist = CELLS1[i].dist;
         if (new_x >= 0 && new_x < grid->ncol && new_y >= 0 && new_y < grid->nrow) {
-            Coord neighbor = {new_x, new_y};
+            Coord neighbor = {new_x, new_y, dist};
             neighbors[k++] = neighbor;
         }
     }
@@ -39,8 +44,9 @@ Coord* get_neighbors_far(Coord coord, Grid* grid, int accel) {
     for (i = 0; i < (num_cells - 8); ++i) {
         new_x = coord.x + DIST_CELLS[i].x;
         new_y = coord.y + DIST_CELLS[i].y;
+        dist = DIST_CELLS[i].dist;
         if (new_x >= 0 && new_x < grid->ncol && new_y >= 0 && new_y < grid->nrow && grid->terrain[new_y * grid->ncol + new_x] == CORRIDOR) {
-            Coord neighbor = {new_x, new_y};
+            Coord neighbor = {new_x, new_y, dist};
             neighbors[k++] = neighbor;
         }
     }
@@ -64,13 +70,18 @@ Coord* get_neighbors(Coord coord, Grid* grid) {
     int k = 0;
     int new_x, new_y;
 
+    ///
+    double dist;
+    ///
+
     for (i = 0; i < num_cells; ++i) {
 
         new_x = coord.x + CELLS1[i].x;
         new_y = coord.y + CELLS1[i].y;
+        dist = CELLS1[i].dist;
 
         if (new_x >= 0 && new_x < grid->ncol && new_y >= 0 && new_y < grid->nrow) {
-            Coord neighbor = {new_x, new_y};
+            Coord neighbor = {new_x, new_y, dist};
             neighbors[k++] = neighbor;
         }
     }
@@ -89,7 +100,7 @@ Coord* get_neighbors(Coord coord, Grid* grid) {
  */
 double fission_ta(double n, double phi, double k) {
     if (phi >= n/k) return 0;
-    else return n * (1.0 - (phi / (n/k)));
+    else return n - (phi * k);
 }
 
 /**
@@ -146,7 +157,8 @@ void fission(Model* model, Grid* grid) {
                     free_nbr[len++] = nbr[j];
 
                     ////
-                    tot += grid->environment[nbr[j].y * grid->ncol + nbr[j].x];
+                    //tot += grid->environment[nbr[j].y * grid->ncol + nbr[j].x];
+                    tot += nbr[j].dist;
                     ////
                 }                    
             }
@@ -155,15 +167,16 @@ void fission(Model* model, Grid* grid) {
                 grid->population[coord.y * grid->ncol + coord.x] -= migrants;
 
                 for (j = 0; j < len; j++) {
-                    double percent = grid->environment[free_nbr[j].y * grid->ncol + free_nbr[j].x] / tot;
+                    //double percent = grid->environment[free_nbr[j].y * grid->ncol + free_nbr[j].x] / tot;
+                    double percent = free_nbr[j].dist / tot;
                     if (grid->arrival[free_nbr[j].y * grid->ncol + free_nbr[j].x] == 0) {
                         grid->arrival[free_nbr[j].y * grid->ncol + free_nbr[j].x] = model->tick;
                         model->active[model->agent_count] = 1;
                         model->agents[model->agent_count++] = free_nbr[j];
                         model->agents[model->agent_count].x = TURNOFF;
                     }
-                    //grid->population[free_nbr[j].y * grid->ncol + free_nbr[j].x] += (migrants * percent);
-                    grid->population[free_nbr[j].y * grid->ncol + free_nbr[j].x] += (migrants / len);
+                    grid->population[free_nbr[j].y * grid->ncol + free_nbr[j].x] += (migrants * percent);
+                    //grid->population[free_nbr[j].y * grid->ncol + free_nbr[j].x] += (migrants / len);
                 }
 
                 /*
