@@ -20,12 +20,12 @@ The simulation needs the following parameters:
 * <b>A terrain layer:</b> this influences mobility by specifying barriers and corridors. Values must be in {0,1,2} where 0 = normal terrain; 1 = barrier; and 2 = corridor. Barriers can be mountains, deserts or any other geographical feature thought to block movement. Corridors can be rivers, coastlines or any other feature thought to facilitate movement.
 * <b>Origin centres:</b> this is a DataFrame with the x,y coordinates and start dates (years bp) of each centre of origin for the expansion.
 * <b>How many years</b> to run the simulation for.
-* <b>Annual growth rate ($r$)</b>: a percentage expressed as a decimal.
-* <b>Emigration threshold ($\phi$)</b>: a fraction of the carrying capacity above which emigration will happen.
-* <b>Generation time ($t$)</b> in years.
+* <b>Annual growth rate</b> ($r$): a percentage expressed as a decimal.
+* <b>Emigration threshold</b> ($\phi$): a fraction of the carrying capacity above which emigration will happen.
+* <b>Generation time</b> ($t$) in years.
 * <b>Migration distance</b>: how far (km) can the population disperse over a generation.
 * <b>Acceleration factor</b>: how much further can the population travel if located in a corridor.
-* <b>A power $\gamma$</b> that determines the shape of the dependence of $r$ on the environment.
+* <b>A power</b> $\gamma$ that determines the shape of the dependence of $r$ on the environment.
 * <b>Time steps</b> (in years) at which the environment and terrain are updated, if any. Notice that if updates are specified, the environment and terrain layers must be RasterStacks with a number of layers = number of updates + 1.
 
 The model starts at the earliest date specified by the origin centres. The origin cells where the expansion is supposed to start from at that time have their population set to $K$, immediately fissioning and starting the expansion. At each time step, for each populated cell, growth is applied and migrants (if any) are dispersed to the neighboring cells. In what follows, each of these procedures is described.
@@ -131,7 +131,7 @@ plot(borders, add=TRUE)
 ```
 
 <p align="center"><img src="man/img/test.png" width="400" /></p>
-<p align="center"><b>Figure 3.</b> Simulated Neolithic arrival times from the Near East to Europe.</p>
+<p align="center"><b>Figure 4.</b> Simulated Neolithic arrival times from the Near East to Europe.</p>
 
 We can evaluate the model on the European Neolithic dates by taking the mean absolute error:
 
