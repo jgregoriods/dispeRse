@@ -48,28 +48,34 @@ $$
 
 Where $N_0$ is the initial population.
 
+<p align="center"><img src="man/img/growth.png" width="500"/></p>
+<p align="center"><b>Figure 1.</b> Number of new individuals (left) and total population size (right) over time for different carrying capacities.</p>
+
 <h3>3.2. Emigration</h3>
 
 Models of emigration as a density-dependent process usually assume that pressure to emigrate increases with population density due to diminishing returns. There are many competing models, most of which postulate a population threshold above which emigration happens. Here, one of the simplest models, the asymptotic threshold model, is used (Hovestadt et al. 2010). Past a given threshold $\phi$, the probability of emigration grows asymptotically towards 100% as the population approaches carrying capacity.
 
-By rewriting the equation of Poethke and Hovestadt(2002), the number of migrants at each time step can be modeled as:
+By rewriting the equation of Poethke and Hovestadt(2002), the number of migrants $m$ at each time step can be modeled as:
 
 $$
-M =
+m(N_t) =
     \begin{cases}
-        0 & \text{if } \phi \leq \frac{N}{K} \\
-        N - \phi K & \text{otherwise}
+        0 & \text{if } \phi \leq \frac{N_t}{K} \\
+        N_t - \phi K & \text{otherwise}
     \end{cases}
 $$
 
-Where $N$ is the population after growth.
+Where $N_t$ is the population at the current time step <i>after</i> growth.
+
+<p align="center"><img src="man/img/fission.png" width="500" /></p>
+<p align="center"><b>Figure 2.</b> Probability of emigration (left) and number of migrants (right) for different emigration threshold</p>
 
 <h3>3.3. Mobility</h3>
 
 In normal terrain, the migrants are redistributed to the eight cells in the Moore neighborhood, provided they have positive environmental values and their population is below the emigration threshold. If a terrain layer is included with values for corridors and barriers, dispersal is affected in the following way: 1) population in cells marked as barriers will not disperse; 2) population in cells marked as corridors are allowed to disperse beyond the Moore neighborhood. In the latter case, dispersal can be as far as the distance defined by the parameter acceleration, and only if the more distant cells are also in a corridor. Redistribution of the population to the available cells occurs proportionally to the inverse of the square distance.
 
 <p align="center"><img src="man/img/disp.png" width="300" /></p>
-<p align="center"><b>Figure 1. a.</b> Cells considered for migration in normal terrain. <b>b.</b> Cells considered for migration in a corridor (light grey cells) with acceleration=3. Values are the inverse of the square distance to each cell.</p>
+<p align="center"><b>Figure 3. a.</b> Cells considered for migration in normal terrain. <b>b.</b> Cells considered for migration in a corridor (light grey cells) with acceleration=3. Values are the inverse of the square distance to each cell.</p>
 
 <h3>3.4. Effect of the environment</h3>
 
@@ -125,7 +131,7 @@ plot(borders, add=TRUE)
 ```
 
 <p align="center"><img src="man/img/test.png" width="400" /></p>
-<p align="center"><b>Figure 2.</b>Simulated Neolithic arrival times from the Near East to Europe.</p>
+<p align="center"><b>Figure 3.</b> Simulated Neolithic arrival times from the Near East to Europe.</p>
 
 We can evaluate the model on the European Neolithic dates by taking the mean absolute error:
 
