@@ -11,7 +11,7 @@ simulate_dispersal(
   years,
   r = 0.025,
   phi = 0.5,
-  t = 25,
+  t = 30,
   dist = 50,
   accel = 3,
   gamma = 1,
@@ -19,12 +19,12 @@ simulate_dispersal(
 )
 }
 \arguments{
-\item{environment}{A RasterLayer or RasterStack. Environmental values that
-affect carrying capacity and growth rate. Typically given as a fraction (0-1)
-of the max K. If the environment will be updated during the experiment, this
-parameter must be a raster stack.}
+\item{environment}{A Raster*. Environmental values that affect carrying
+capacity and growth rate. Typically given as a fraction (0-1) of the max K.
+If the environment will be updated during the experiment, this parameter
+must be a raster stack.}
 
-\item{terrain}{A RasterLayer. Cells with value 1 are barriers and cells with
+\item{terrain}{A Raster*. Cells with value 1 are barriers and cells with
 value 2 are corridors. If the terrain will be updated during the experiment,
 this parameter must be a raster stack.}
 
@@ -36,7 +36,7 @@ the same system as the environment and terrain layers.}
 
 \item{r}{Numeric. The annual growth rate as a decimal.}
 
-\item{phi}{Numeric. The fission threshold as a fraction of (local) carrying
+\item{phi}{Numeric. The emigration threshold as a fraction of carrying
 capacity.}
 
 \item{t}{Numeric. The duration, in years, of a generation (model time step).}
@@ -78,14 +78,14 @@ is allowed to be controlled by a power gamma. By default, the dependence is
 linear (gamma = 1).
 
 For emigration, a threshold phi is considered, expressed as a fraction of
-carrying capacity. Migrants move to the cell with the highest environmental
-value in their Moore neighborhood (8 cells).
+carrying capacity. Migrants are distributed among the available cells of the
+Moore neighborhood proportionally to the inverse of the distance squared.
 
 Terrain can be represented by a raster specifying barriers (e.g. mountains),
 which block movement, and corridors (e.g. rivers), which accelerate movement.
 For the latter, an acceleration factor can be specified.
 }
 \examples{
-sim <- simulate_dispersal(euro_npp, raster::stack(replicate(8, euro_terr)),
-ppnb, 6000, updates=seq(10000,4000,-1000))
+terr <- raster::stack(replicate(8, euro_terr))
+sim <- simulate_dispersal(euro_npp, terr, ppnb, 5500, phi=0.33, updates=seq(10000,4000,-1000))
 }

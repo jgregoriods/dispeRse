@@ -3,14 +3,20 @@
 \docType{data}
 \name{euro_terr}
 \alias{euro_terr}
-\title{Land polygons.}
+\title{Reclassified terrain layer with elevation > 1750 m as barriers and rivers
+and coastline as corridors. Terrain reclassified from SRTM. Rivers rasterized
+from GSHHG (https://www.soest.hawaii.edu/pwessel/gshhg/) and coastline
+rasterized from rnaturalearth.}
 \format{
-A SpatialPolygonsDataFrame object.
+A RasterLayer object.
 }
 \usage{
 euro_terr
 }
 \description{
-Land polygons.
+Reclassified terrain layer with elevation > 1750 m as barriers and rivers
+and coastline as corridors. Terrain reclassified from SRTM. Rivers rasterized
+from GSHHG (https://www.soest.hawaii.edu/pwessel/gshhg/) and coastline
+rasterized from rnaturalearth.
 }
 \keyword{datasets}

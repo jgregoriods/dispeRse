@@ -3,14 +3,20 @@
 \docType{data}
 \name{euro_npp}
 \alias{euro_npp}
-\title{Land polygons.}
+\title{Transformed Net Primary Production (NPP) from 11 ka to 4 ka at 1000 yr steps.
+Calculated with the Miami formula using paleoclimatic data from Beyer et al. 2020.
+(https://doi.org/10.1038/s41597-020-0552-1). Clipped to max=1350, squared and
+scaled to [0,1].}
 \format{
-A SpatialPolygonsDataFrame object.
+A RasterStack object.
 }
 \usage{
 euro_npp
 }
 \description{
-Land polygons.
+Transformed Net Primary Production (NPP) from 11 ka to 4 ka at 1000 yr steps.
+Calculated with the Miami formula using paleoclimatic data from Beyer et al. 2020.
+(https://doi.org/10.1038/s41597-020-0552-1). Clipped to max=1350, squared and
+scaled to [0,1].
 }
 \keyword{datasets}

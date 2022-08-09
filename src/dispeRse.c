@@ -12,7 +12,7 @@
  * @param ncol The number of colunms in the environment and terrain grids.
  * @param environment An array. Result of flattening a 2d grid. Environmental
  * values that affect carrying capacity (K) and growth rate. Typically given as
- * a fraction (0-1) of the max K. Notice that the array length can be a multiple
+ * a fraction [0,1] of the max K. Notice that the array length can be a multiple
  * of nrow * ncol if the environment is to be updated during the experiment.
  * @param terrain An array. Result of flattening a 2d grid. Cells with value 1
  * are barriers (prevent fission). Cells with value 2 are corridors - migrants
@@ -46,11 +46,12 @@ void run_model(int *nrow, int *ncol, double *environment, int *terrain,
     int ncell = *nrow * *ncol;
     int max_agents = *nrow * *ncol * 2;
     double local_k;
-    int index = 0;
+    int index = 0;  // to keep track of environment updates
 
     Grid grid = {*nrow, *ncol, population, environment, terrain, arrival};
     Model model = {*r, *phi, *t, *accel, *gamma};
 
+    // init all cells with start time = max start time
     int max_age = start[0];
     for (i = 0; i < *num_origins; i++) {
         if (start[i] > max_age) {
@@ -59,8 +60,11 @@ void run_model(int *nrow, int *ncol, double *environment, int *terrain,
     }
 
     model.agents = malloc(sizeof(Coord) * max_agents);
+
+    // keep track of inactive cells (those that cannot fission)
     model.active = malloc(sizeof(int) * max_agents);
     for (i = 0; i < max_agents; i++) model.active[i] = 0;
+
     model.tick = max_age;
 
     int active_agents = 0;
@@ -74,15 +78,20 @@ void run_model(int *nrow, int *ncol, double *environment, int *terrain,
             grid.population[y[i] * *ncol + x[i]] = local_k;
         }
     }
-    model.agents[active_agents].x = TURNOFF;
-    model.agent_count = active_agents;
+    model.agents[active_agents].x = TURNOFF;    // where to stop iterations
+    model.agent_count = active_agents;          // keep track of how many settled cells
 
+    // main loop
     for (i = 0; i < *num_iter; i++) {
+
         grow(&model, &grid);
         fission(&model, &grid);
         model.tick -= model.t;
 
+        // check if other origin cells should start their expansion
+        // at the current time step
         for (j = 1; j < *num_origins; j++) {
+            // only if the cell has not already been reached
             if (start[j] >= model.tick && grid.population[y[j] * *ncol + x[j]] == 0) {
                 Coord init_cell = {x[j], y[j]};
                 model.active[model.agent_count] = 1;
@@ -94,6 +103,7 @@ void run_model(int *nrow, int *ncol, double *environment, int *terrain,
             }
         }
 
+        // check if environment must be updated
         if (i == updates[index]) {
             index++;
             grid.environment = malloc(sizeof(double) * ncell);
@@ -102,6 +112,7 @@ void run_model(int *nrow, int *ncol, double *environment, int *terrain,
                 grid.environment[j] = environment[(ncell * index)+j];
                 grid.terrain[j] = terrain[(ncell * index)+j];
             }
+            // reactivate all cells, as they may be able to fission now
             for (j = 0; j < model.agent_count; j++) {
                 model.active[j] = 1;
             }

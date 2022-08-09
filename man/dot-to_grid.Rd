@@ -11,7 +11,7 @@ relative position in rows and columns of a grid.}
 \item{coords}{A SpatialPointsDataFrame. Must contain a column dates with the
 start date of the dispersal from each point.}
 
-\item{grid}{A RasterLayer. The coordinates will be converted to this grid.}
+\item{grid}{A Raster*. The coordinates will be converted to this grid.}
 }
 \value{
 A DataFrame with the converted coordinates.

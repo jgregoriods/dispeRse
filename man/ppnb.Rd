@@ -3,14 +3,18 @@
 \docType{data}
 \name{ppnb}
 \alias{ppnb}
-\title{Land polygons.}
+\title{Coordinates and earliest dates (med cal BP) for Late Pre-Pottery Neolithic B
+sites in the Near East. Dataset adapted from the supplementary information
+in Pinhasi et al. 2005 (https://doi.org/10.1371/journal.pbio.0030410).}
 \format{
-A SpatialPolygonsDataFrame object.
+A DataFrame object.
 }
 \usage{
 ppnb
 }
 \description{
-Land polygons.
+Coordinates and earliest dates (med cal BP) for Late Pre-Pottery Neolithic B
+sites in the Near East. Dataset adapted from the supplementary information
+in Pinhasi et al. 2005 (https://doi.org/10.1371/journal.pbio.0030410).
 }
 \keyword{datasets}
