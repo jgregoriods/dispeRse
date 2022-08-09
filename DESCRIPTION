@@ -15,7 +15,7 @@ Description: Simulates demic diffusion building on models previously developed
 	model. Environmental and terrain layers, which can change over time, affect
 	carrying capacity, growth and mobility. Multiple centres of origin with
 	their respective starting times can be specified.
-Depends: R (>= 4.1.0)
+Depends: R (>= 4.0.0)
 Imports: raster, sp, rgdal
 License: MIT + file LICENSE 
 Encoding: UTF-8
