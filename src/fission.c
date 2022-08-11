@@ -18,10 +18,10 @@ Coord* get_neighbors_far(Coord coord, Grid* grid, int accel) {
 
     int num_cells = NCELL[accel-2];
 
-    const Coord* DIST_CELLS;
-    
+    // initialize assuming accel = 3
+    const Coord* DIST_CELLS = CELLS3;
+
     if (accel == 2) DIST_CELLS = CELLS2;
-    else if (accel == 3) DIST_CELLS = CELLS3;
     else if (accel == 4) DIST_CELLS = CELLS4;
 
     Coord* neighbors = malloc(sizeof(Coord) * num_cells);
