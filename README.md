@@ -25,11 +25,11 @@ The simulation needs the following parameters:
 
 <b>How many years</b> to run the simulation for.
 
-<b>Annual growth rate</b> ($r$) expressed as a decimal.
+<b>Annual growth rate</b> $r$ expressed as a decimal.
 
-<b>Emigration threshold</b> ($\phi$): a fraction of the carrying capacity above which emigration will happen. Expressed as a decimal.
+<b>Emigration threshold</b> $\phi$: a fraction of the carrying capacity above which emigration will happen. Expressed as a decimal.
 
-<b>Generation time</b> ($t$) in years.
+<b>Generation time</b> $t$ in years.
 
 <b>Migration distance</b>: how far (km) can the population disperse over a generation.
 
@@ -98,7 +98,7 @@ In normal terrain, the migrants are redistributed to the eight cells in the Moor
 In the latter case, dispersal can be as far as the distance defined by the acceleration parameter, and only if the more distant cells are also in a corridor (Fig. 3). Redistribution of the population to the available cells occurs proportionally to the inverse of the square distance. Formally, the percentage of migrants that move to a cell $i$ among $N$ available cells is given by:
 
 $$
-\frac{1/d_i^2}{\sum_{j=1}^N 1/d_j^2}
+\frac{1}{d_i^2} \left({\sum_{j=1}^N \frac{1}{d_j^2}}\right)^{-1}
 $$
 
 Where $d$ is the distance.
