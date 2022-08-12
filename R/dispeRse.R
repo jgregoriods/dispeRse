@@ -52,6 +52,7 @@
 #' between r and the environment.
 #' @param updates Numeric. Optional vector with the years at which the
 #' environment and terrain grids will be updated.
+#' @param verbose Boolean. If TRUE, write messages to the console.
 #' @return A RasterLayer with simulated arrival times.
 #' @export
 #' @useDynLib dispeRse, .registration = TRUE
@@ -60,7 +61,7 @@
 #' sim <- simulate_dispersal(euro_npp, terr, ppnb, 5500, phi=0.33, updates=seq(10000,4000,-1000))
 simulate_dispersal <- function(environment, terrain, coords, years, r=0.025,
                                phi=0.5, t=30, dist=50, accel=3, gamma=1,
-                               updates=NULL) {
+                               updates=NULL, verbose=TRUE) {
 
     if (!accel %in% c(2,3,4)) {
         stop("Acceleration factor must be an integer in {2,3,4}.")  
@@ -93,7 +94,7 @@ simulate_dispersal <- function(environment, terrain, coords, years, r=0.025,
         stop("coords must be a DataFrame with at least columns x, y, date.")
     }
 
-    print("Preparing rasters...")
+    if (verbose) message("Preparing rasters...")
 
     coords <- coords[order(-coords$date),]
 
@@ -149,7 +150,7 @@ simulate_dispersal <- function(environment, terrain, coords, years, r=0.025,
     update_step = -1
     if (!is.null(updates)) update_step <- c(floor((start[1] - updates) / t), -1)
 
-    print("Running model...")
+    if (verbose) message("Running model...")
     ret_val <- .C("run_model", nrow=as.integer(NROW), ncol=as.integer(NCOL),
                 environment=as.double(env_values), terrain=as.integer(terr_values),
                 population=as.double(population), arrival=as.integer(arrival),
@@ -158,7 +159,7 @@ simulate_dispersal <- function(environment, terrain, coords, years, r=0.025,
                 r=as.double(r), phi=as.double(phi), t=as.double(t),
                 accel=as.integer(accel), gamma=as.double(gamma),
                 updates=as.integer(update_step), PACKAGE="dispeRse")
-    print("Done.")
+    if (verbose) message("Done.")
 
     res <- raster(matrix(ret_val$arrival, nrow=NROW, ncol=NCOL, byrow=TRUE))
     res[values(res) == 0] <- NA

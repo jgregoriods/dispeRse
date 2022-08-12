@@ -15,7 +15,8 @@ simulate_dispersal(
   dist = 50,
   accel = 3,
   gamma = 1,
-  updates = NULL
+  updates = NULL,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -53,6 +54,8 @@ between r and the environment.}
 
 \item{updates}{Numeric. Optional vector with the years at which the
 environment and terrain grids will be updated.}
+
+\item{verbose}{Boolean. If TRUE, write messages to the console.}
 }
 \value{
 A RasterLayer with simulated arrival times.

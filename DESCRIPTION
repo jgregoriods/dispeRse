@@ -9,8 +9,8 @@ Authors@R:
            comment = c(ORCID = "0000-0001-6032-4443"))
 Description: Simulates demic diffusion building on models previously developed
 	for the expansion of Neolithic and other food-producing economies during
-	the Holocene (Fort et al. 2012 <doi:10.7183/0002-7316.77.2.203>, Souza et al.
-	2021 <doi:10.1098/rsif.2021.0499>). Growth and emigration are modelled as
+	the Holocene (Fort et al. (2012) <doi:10.7183/0002-7316.77.2.203>, Souza et al.
+	(2021) <doi:10.1098/rsif.2021.0499>). Growth and emigration are modelled as
 	density-dependent processes using logistic growth and an asymptotic threshold
 	model. Environmental and terrain layers, which can change over time, affect
 	carrying capacity, growth and mobility. Multiple centres of origin with
