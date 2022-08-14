@@ -5,6 +5,20 @@
 jonas.gregorio@gmail.com<br/>
 [![ORCiD](https://img.shields.io/badge/ORCiD-0000--0001--7879--4531-green.svg)](https://orcid.org/0000-0001-6032-4443)<br/>
 
+<h3>Installation</h3>
+
+To install from CRAN:
+
+```R
+install.packages("dispeRse")
+```
+
+To install from the github repository:
+
+```R
+devtools::install_github("jgregoriods/dispeRse")
+```
+
 <h3>1. Motivation</h3>
 
 A recurrent demographic phenomenon during the Holocene was the growth and expansion of populations of farmers - observed in areas as diverse as Europe, Africa and South America. Attempts have been made to simulate those expansions using agent-based models, equation-based models and cellular automata (Fort et al. 2012; Souza et al. 2020, 2021; Russel et al. 2014).
