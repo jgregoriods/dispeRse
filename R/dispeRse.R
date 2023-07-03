@@ -184,13 +184,15 @@ simulate_dispersal <- function(environment, terrain, coords, years, r=0.025,
 .to_grid <- function(coords, grid) {
     grid_coords <- data.frame(matrix(ncol=3, nrow=0))
     colnames(grid_coords) <- c("x", "y", "date")
+    coords_xy <- coordinates(coords)
     for (i in 1:nrow(coords)) {
-        grid_coords[i,1] <- round((coords$x[i] - xmin(grid)) / res(grid)[1])
-        grid_coords[i,2] <- round((ymax(grid) - coords$y[i]) / res(grid)[2])
+        grid_coords[i,1] <- round((coords_xy[i, 1] - xmin(grid)) / res(grid)[1])
+        grid_coords[i,2] <- round((ymax(grid) - coords_xy[i, 2]) / res(grid)[2])
         grid_coords[i,3] <- coords$date[i]
     }
     return(grid_coords)
 }
+
 
 #' Coordinates and earliest dates (med cal BP) for European Neolithic sites.
 #' Dataset adapted from the supplementary information in Pinhasi et al. 2005

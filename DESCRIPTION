@@ -16,7 +16,7 @@ Description: Simulates demic diffusion building on models previously developed
 	carrying capacity, growth and mobility. Multiple centres of origin with
 	their respective starting times can be specified.
 Depends: R (>= 4.0.0)
-Imports: raster, sp, rgdal
+Imports: raster, sp
 License: MIT + file LICENSE 
 Encoding: UTF-8
 LazyData: true
