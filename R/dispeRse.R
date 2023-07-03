@@ -28,6 +28,7 @@
 #' 
 #' @import raster
 #' @import sp
+#' @import sf
 #' @param environment A Raster*. Environmental values that affect carrying
 #' capacity and growth rate. Typically given as a fraction (0-1) of the max K.
 #' If the environment will be updated during the experiment, this parameter
@@ -125,7 +126,8 @@ simulate_dispersal <- function(environment, terrain, coords, years, r=0.025,
 
     environment <- projectRaster(environment, res=dist*1000, crs=crs)
     terrain <- projectRaster(terrain, environment, method="ngb")
-    coords <- spTransform(coords, crs)
+    sfdata = st_as_sf(coords)
+    coords <- st_transform(sfdata, crs)
 
     NROW <- nrow(environment)
     NCOL <- ncol(environment)
@@ -184,7 +186,7 @@ simulate_dispersal <- function(environment, terrain, coords, years, r=0.025,
 .to_grid <- function(coords, grid) {
     grid_coords <- data.frame(matrix(ncol=3, nrow=0))
     colnames(grid_coords) <- c("x", "y", "date")
-    coords_xy <- coordinates(coords)
+    coords_xy <- st_coordinates(coords)
     for (i in 1:nrow(coords)) {
         grid_coords[i,1] <- round((coords_xy[i, 1] - xmin(grid)) / res(grid)[1])
         grid_coords[i,2] <- round((ymax(grid) - coords_xy[i, 2]) / res(grid)[2])
