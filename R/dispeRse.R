@@ -154,7 +154,7 @@ simulate_dispersal <- function(environment, terrain, coords, years, r=0.025,
 
     if (verbose) message("Running model...")
     ret_val <- .C("run_model", nrow=as.integer(NROW), ncol=as.integer(NCOL),
-                environment=as.double(env_values), terrain=as.integer(terr_values),
+                environment=as.double(env_values), terrain=as.double(terr_values),
                 population=as.double(population), arrival=as.integer(arrival),
                 x=as.integer(x), y=as.integer(y), start=as.integer(start),
                 num_origins=as.integer(length(x)), num_iter=as.integer(num_iter), 

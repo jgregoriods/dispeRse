@@ -38,7 +38,7 @@
  * @param updates An array specifying the model steps at which the environment
  * and terrain grids will be updated.
  */
-void run_model(int *nrow, int *ncol, double *environment, int *terrain,
+void run_model(int *nrow, int *ncol, double *environment, double *terrain,
                double *population, int *arrival, int *x, int *y, int *start,
                int *num_origins, int *num_iter, double *r, double *phi,
                double *t, int *accel, double *gamma, int *updates) {
@@ -107,7 +107,7 @@ void run_model(int *nrow, int *ncol, double *environment, int *terrain,
         if (i == updates[index]) {
             index++;
             grid.environment = malloc(sizeof(double) * ncell);
-            grid.terrain = malloc(sizeof(int) * ncell);
+            grid.terrain = malloc(sizeof(double) * ncell);
             for (j = 0; j < ncell; j++) {
                 grid.environment[j] = environment[(ncell * index)+j];
                 grid.terrain[j] = terrain[(ncell * index)+j];

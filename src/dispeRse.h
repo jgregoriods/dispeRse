@@ -23,7 +23,7 @@ typedef struct Grid {
     int ncol;
     double* population;
     double* environment;
-    int* terrain;
+    double* terrain;
     int* arrival;
 } Grid;
 
@@ -98,7 +98,7 @@ double log_growth(double n, double r, double k, double t);
 double fission_ta(double n, double cta, double k);
 void grow(Model *model, Grid *grid);
 void fission(Model *model, Grid *grid);
-void run_model(int *nrow, int *ncol, double *environment, int *terrain,
+void run_model(int *nrow, int *ncol, double *environment, double *terrain,
                double *population, int *arrival, int *x, int *y, int *start,
                int *num_origins, int *num_iter, double *r, double *phi,
                double *t, int *accel, double *gamma, int *updates);

@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <R_ext/Rdynload.h>
 
-extern void run_model(int*, int*, double*, int*, double*, int*, int*, int*, int*, int*, int*, double*, double*, double*, int*, double*, int*);
+extern void run_model(int*, int*, double*, double*, double*, int*, int*, int*, int*, int*, int*, double*, double*, double*, int*, double*, int*);
 
 static const R_CMethodDef CEntries[] = {
     {"run_model", (DL_FUNC) &run_model, 17},
